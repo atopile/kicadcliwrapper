@@ -2,8 +2,13 @@
 # SPDX-License-Identifier: MIT
 
 
+import logging
 import re
+import subprocess
 from dataclasses import dataclass
+from subprocess import check_output
+
+logger = logging.getLogger(__name__)
 
 
 class ParserL1:
@@ -85,3 +90,14 @@ def make_command(l2_root: ParserL2.Command, cmd) -> list[str]:
         out.extend(sub)
 
     return out
+
+
+def run_command(l2_root: ParserL2.Command, cmd) -> str:
+    try:
+        version = check_output(["kicad-cli", "--version"]).decode("utf-8")
+    except subprocess.CalledProcessError:
+        raise Exception("kicad-cli is not installed")
+
+    logger.debug(f"Found kicad-cli version: {version}")
+
+    return check_output(make_command(l2_root, cmd)).decode("utf-8")
