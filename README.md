@@ -25,13 +25,14 @@ kicad_cli(
     kicad_cli.pcb(
         kicad_cli.pcb.export(
             kicad_cli.pcb.export.pdf(
-                input_file="input.kicad_pcb"
+                INPUT_FILE="input.kicad_pcb"
             )
         )
     ),
 ).exec()
 ```
 
+For more examples you can check [faebryk](https://github.com/faebryk/faebryk/blob/ee0f662d9b2b69c5ebdb5b424d4232ffb2ac2d7c/src/faebryk/exporters/pcb/kicad/artifacts.py)
 
 ## Development
 
