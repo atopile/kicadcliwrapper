@@ -43,3 +43,5 @@ poetry install
 # Re-generate bindings (make sure kicad-cli is installed)
 python src/kicadcliwrapper/main.py
 ```
+
+See [PARSER.md](PARSER.md) for an explanation of the internal parsing.
