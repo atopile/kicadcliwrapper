@@ -3,9 +3,12 @@
 
 
 import logging
+import os
 import re
 import subprocess
+import sys
 from dataclasses import dataclass
+from pathlib import Path
 from subprocess import check_output
 
 logger = logging.getLogger(__name__)
@@ -92,12 +95,46 @@ def make_command(l2_root: ParserL2.Command, cmd) -> list[str]:
     return out
 
 
-def run_command(l2_root: ParserL2.Command, cmd) -> str:
-    try:
-        version = check_output(["kicad-cli", "--version"]).decode("utf-8")
-    except subprocess.CalledProcessError:
-        raise Exception("kicad-cli is not installed")
+def find_kicad_cli() -> str:
+    """Figure out what to call for the pcbnew CLI."""
 
-    logger.debug(f"Found kicad-cli version: {version}")
+    def check(cmd) -> bool:
+        try:
+            version = check_output([cmd, "--version"]).decode("utf-8")
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            logger.debug("Missed kicad-cli at %s", cmd)
+            return False
+        else:
+            logger.debug("Found kicad-cli version: %s", version)
+            return True
 
-    return check_output(make_command(l2_root, cmd)).decode("utf-8")
+    if check("kicad-cli"):
+        return "kicad-cli"
+
+    if sys.platform.startswith("darwin"):
+        base = Path("/Applications/KiCad/")
+    elif sys.platform.startswith("win"):
+        base = Path(os.getenv("ProgramFiles")) / "KiCad"
+    else:
+        raise NotImplementedError(f"Unsupported platform: {sys.platform}")
+
+    for cmd in base.glob("**/kicad-cli"):
+        if check(cmd):
+            return str(cmd)
+
+    raise FileNotFoundError("Could not find kicad-cli executable")
+
+
+def run_command(command: list[str], check=False) -> str:
+    assert command
+    cli_path = find_kicad_cli()
+    assert cli_path.endswith(command[0])
+    result = subprocess.run(
+        [cli_path] + command[1:], capture_output=True, text=True, check=check
+    )
+    return result.stdout
+
+
+def run_parser_command(l2_root: ParserL2.Command, cmd) -> str:
+    command = make_command(l2_root, cmd)
+    return run_command(command)

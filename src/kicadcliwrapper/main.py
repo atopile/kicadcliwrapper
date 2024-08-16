@@ -4,7 +4,6 @@
 
 import logging
 import re
-import subprocess
 from pathlib import Path
 from textwrap import indent
 
@@ -13,16 +12,12 @@ import typer
 from kicadcliwrapper.lib import (
     ParserL1,
     ParserL2,
+    run_command,
     sanitize_flag_arg_name,
     sanitize_name,
 )
 
 logger = logging.getLogger(__name__)
-
-
-def run_command(chain: list[str]) -> str:
-    result = subprocess.run(chain, capture_output=True, text=True)
-    return result.stdout
 
 
 def _split_strip(s: str, sep: str, max_split: int = -1) -> list[str]:
