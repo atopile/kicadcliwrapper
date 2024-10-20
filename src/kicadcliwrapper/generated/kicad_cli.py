@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from subprocess import check_output
 
 from kicadcliwrapper.generated.kicad_cli_l2 import kicad_cli_l2
-from kicadcliwrapper.lib import run_command
+from kicadcliwrapper.lib import run_parser_command
 
 
 @dataclass
@@ -950,4 +950,4 @@ class kicad_cli:
         help: bool = False
 
     def exec(self):
-        return run_command(kicad_cli_l2, self)
+        return run_parser_command(kicad_cli_l2, self)
