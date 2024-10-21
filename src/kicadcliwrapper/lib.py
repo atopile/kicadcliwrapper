@@ -129,12 +129,22 @@ def run_command(command: list[str], check=False) -> str:
     assert command
     cli_path = find_kicad_cli()
     assert cli_path.endswith(command[0])
-    result = subprocess.run(
-        [cli_path] + command[1:], capture_output=True, text=True, check=check
-    )
+    logger.debug("Running command: %s", " ".join(command))
+
+    result = subprocess.run([cli_path] + command[1:], capture_output=True, text=True)
+
+    logger.debug("Command return code: %s", result.returncode)
+    logger.debug("Command stdout: %s", result.stdout)
+    logger.debug("Command stderr: %s", result.stderr)
+
+    if result.returncode != 0:
+        raise subprocess.CalledProcessError(
+            result.returncode, command, result.stdout, result.stderr
+        )
+
     return result.stdout
 
 
-def run_parser_command(l2_root: ParserL2.Command, cmd) -> str:
+def run_parser_command(l2_root: ParserL2.Command, cmd, check=False) -> str:
     command = make_command(l2_root, cmd)
-    return run_command(command)
+    return run_command(command, check)

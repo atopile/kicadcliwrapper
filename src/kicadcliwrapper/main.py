@@ -192,7 +192,7 @@ def main(out_dir: Path = Path(__file__).parent / Path("generated")):
         + "from kicadcliwrapper.lib import run_command\n"
     )
     trailer_l3 = (
-        "    def exec(self):\n" + "        return run_command(kicad_cli_l2, self)\n"
+        "    def exec(self, check=False):\n" + "        return run_command(kicad_cli_l2, self, check)\n"
     )
     out.write_text(
         black.format_str(
