@@ -603,7 +603,7 @@ ParserL1.Command(
                                         "Optional arguments:",
                                         "-h, --help               Shows help message and exits",
                                         '-o, --output             Output file [nargs=0..1] [default: ""]',
-                                        '--side                   Valid options: front,back,both. Gerber format only supports "front" or "back". [nargs=0..1] [default: "both"]',
+                                        '--side                   Valid options: front,back,both. Gerber format only supports "both". [nargs=0..1] [default: "both"]',
                                         '--format                 Valid options: ascii,csv,gerber [nargs=0..1] [default: "ascii"]',
                                         '--units                  Output units; ascii or csv format only; valid options: in,mm [nargs=0..1] [default: "in"]',
                                         "--bottom-negate-x        Use negative X coordinates for footprints on bottom layer (ascii or csv formats only)",

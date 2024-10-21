@@ -441,7 +441,7 @@ class kicad_cli:
                 Args:
                     INPUT_FILE: Input file
                     output: Output file [nargs=0..1] [default: ""]
-                    side: Valid options: front,back,both. Gerber format only supports "front" or "back". [nargs=0..1] [default: "both"]
+                    side: Valid options: front,back,both. Gerber format only supports "both". [nargs=0..1] [default: "both"]
                     format: Valid options: ascii,csv,gerber [nargs=0..1] [default: "ascii"]
                     units: Output units; ascii or csv format only; valid options: in,mm [nargs=0..1] [default: "in"]
                     help: Shows help message and exits
@@ -949,5 +949,5 @@ class kicad_cli:
         # Flags
         help: bool = False
 
-    def exec(self):
-        return run_parser_command(kicad_cli_l2, self)
+    def exec(self, check=False):
+        return run_parser_command(kicad_cli_l2, self, check)
