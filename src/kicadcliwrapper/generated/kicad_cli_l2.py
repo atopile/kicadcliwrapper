@@ -949,7 +949,7 @@ kicad_cli_l2 = ParserL2.Command(
                                 ),
                                 ParserL2.Argument(
                                     name="--side",
-                                    description='Valid options: front,back,both. Gerber format only supports "front" or "back". [nargs=0..1] [default: "both"]',
+                                    description='Valid options: front,back,both. Gerber format only supports "both". [nargs=0..1] [default: "both"]',
                                     arg_description="VAR",
                                     required=False,
                                 ),
