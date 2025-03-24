@@ -18,8 +18,8 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-repository = "https://github.com/faebryk/kicadcliwrapper"
-homepage = "https://github.com/faebryk/kicadcliwrapper"
+repository = "https://github.com/atopile/kicadcliwrapper"
+homepage = "https://github.com/atopile/kicadcliwrapper"
 
 [tool.poetry.dependencies]
 python = "^3.12"
