@@ -9,6 +9,7 @@ from textwrap import indent
 
 import black
 import typer
+
 from kicadcliwrapper.lib import (
     ParserL1,
     ParserL2,
@@ -142,16 +143,19 @@ def parse_l3_command(l2_command: ParserL2.Command) -> str:
         if not arg.required:
             continue
         out += f"    {_sanitize_flag_arg_name(arg.name)}: str\n"
+        out += f'    """{sanitize_string(arg.description)}"""\n'
 
     out += "    # Arguments (Optional)\n"
     for arg in l2_command.args:
         if arg.required:
             continue
         out += f"    {_sanitize_flag_arg_name(arg.name)}: str | None = None\n"
+        out += f'    """{sanitize_string(arg.description)}"""\n'
 
     out += "    # Flags\n"
     for flag in l2_command.flags:
         out += f"    {_sanitize_flag_arg_name(flag.name)}: bool = False\n"
+        out += f'    """{sanitize_string(flag.description)}"""\n'
 
     if l2_command.subcommands:
         out += "    # Commands\n"
@@ -166,7 +170,7 @@ def main(out_dir: Path = Path(__file__).parent / Path("generated")):
     out_l2 = out_dir / Path("kicad_cli_l2.py")
     out = out_dir / Path("kicad_cli.py")
 
-    logger.info(f"Parsing L1 {'-'*20}")
+    logger.info(f"Parsing L1 {'-' * 20}")
     l1 = parse_l1_command(["kicad-cli"])
 
     header_license = "# This file is part of the faebryk project\n# SPDX-License-Identifier: MIT\n\n\n"  # noqa: E501
@@ -175,24 +179,25 @@ def main(out_dir: Path = Path(__file__).parent / Path("generated")):
     l1_formatted = black.format_str(repr(l1), mode=black.FileMode())
     out_l1.write_text(header_l1 + "\n" + l1_formatted)
 
-    logger.info(f"Parsing L2 {'-'*20}")
+    logger.info(f"Parsing L2 {'-' * 20}")
     l2 = parse_l2_command(l1)
 
     header_l2 = header_license + "from kicadcliwrapper.lib import ParserL2\n"
     l2_formatted = black.format_str("kicad_cli_l2=" + repr(l2), mode=black.FileMode())
     out_l2.write_text(header_l2 + "\n" + l2_formatted)
 
-    logger.info(f"Parsing L3 {'-'*20}")
+    logger.info(f"Parsing L3 {'-' * 20}")
     l3 = parse_l3_command(l2)
     header_l3 = header_license + (
         "from dataclasses import dataclass\n"
-        + "from subprocess import check_output\n"
         + "\n"
         + "from kicadcliwrapper.generated.kicad_cli_l2 import kicad_cli_l2\n"
-        + "from kicadcliwrapper.lib import run_command\n"
+        + "from kicadcliwrapper.lib import run_parser_command\n"
     )
     trailer_l3 = (
-        "    def exec(self, check=False):\n" + "        return run_command(kicad_cli_l2, self, check)\n"
+        "    def exec(self, check=False):\n"
+        + "        return run_parser_command("
+        + "l2_root=kicad_cli_l2, cmd=self, check=check)\n"
     )
     out.write_text(
         black.format_str(

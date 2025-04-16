@@ -9,7 +9,9 @@ ParserL1.Command(
     sections=[
         ParserL1.Section(
             name="Usage",
-            lines=["Usage: kicad-cli [--version] [--help] {fp,pcb,sch,sym,version}"],
+            lines=[
+                "Usage: kicad-cli [--version] [--help] {fp,jobset,pcb,sch,sym,version}"
+            ],
         ),
         ParserL1.Section(
             name="Optional arguments",
@@ -24,6 +26,7 @@ ParserL1.Command(
             lines=[
                 "Subcommands:",
                 "fp            Footprint and Footprint Libraries",
+                "jobset        Jobset",
                 "pcb           PCB",
                 "sch           Schematics",
                 "sym           Symbol and Symbol Libraries",
@@ -91,7 +94,7 @@ ParserL1.Command(
                                 ParserL1.Section(
                                     name="Usage",
                                     lines=[
-                                        "Usage: svg [--help] [--output OUTPUT_DIR] [--layers LAYER_LIST] [--define-var KEY=VALUE] [--theme VAR] [--footprint FOOTPRINT_NAME] [--black-and-white] INPUT_DIR"
+                                        "Usage: svg [--help] [--output OUTPUT_DIR] [--layers LAYER_LIST] [--define-var KEY=VALUE] [--theme VAR] [--footprint FOOTPRINT_NAME] [--sketch-pads-on-fab-layers] [--hide-DNP-footprints-on-fab-layers] [--sketch-DNP-footprints-on-fab-layers] [--crossout-DNP-footprints-on-fab-layers] [--black-and-white] INPUT_DIR"
                                     ],
                                 ),
                                 ParserL1.Section(
@@ -104,21 +107,25 @@ ParserL1.Command(
                                     name="Positional arguments",
                                     lines=[
                                         "Positional arguments:",
-                                        "INPUT_DIR          Input directory",
+                                        "INPUT_DIR                                        Input directory",
                                     ],
                                 ),
                                 ParserL1.Section(
                                     name="Optional arguments",
                                     lines=[
                                         "Optional arguments:",
-                                        "-h, --help         Shows help message and exits",
-                                        '-o, --output       Output directory [nargs=0..1] [default: ""]',
-                                        '-l, --layers       Comma separated list of untranslated layer names to include such as F.Cu,B.Cu [nargs=0..1] [default: ""]',
-                                        "-D, --define-var   Overrides or adds project variables, can be used multiple times to declare multiple variables.",
+                                        "-h, --help                                       Shows help message and exits",
+                                        '-o, --output                                     Output directory [nargs=0..1] [default: ""]',
+                                        '-l, --layers                                     Comma separated list of untranslated layer names to include such as F.Cu,B.Cu [nargs=0..1] [default: ""]',
+                                        "-D, --define-var                                 Overrides or adds project variables, can be used multiple times to declare multiple variables.",
                                         "Use in the format of '--define-var key=value' or '-D key=value' [nargs=0..1] [default: {}]",
-                                        '-t, --theme        Color theme to use (will default to footprint editor settings) [nargs=0..1] [default: ""]',
-                                        '--fp, --footprint  Specific footprint to export within the library [nargs=0..1] [default: ""]',
-                                        "--black-and-white  Black and white only",
+                                        '-t, --theme                                      Color theme to use (will default to footprint editor settings) [nargs=0..1] [default: ""]',
+                                        '--fp, --footprint                                Specific footprint to export within the library [nargs=0..1] [default: ""]',
+                                        "--sp, --sketch-pads-on-fab-layers                Draw pad outlines and their numbers on front and back fab layers",
+                                        "--hdnp, --hide-DNP-footprints-on-fab-layers      Don't plot text & graphics of DNP footprints on fab layers",
+                                        "--sdnp, --sketch-DNP-footprints-on-fab-layers    Plot graphics of DNP footprints in sketch mode on fab layers",
+                                        "--cdnp, --crossout-DNP-footprints-on-fab-layers  Plot an 'X' over the courtyard of DNP footprints on fab layers, and strikeout their reference designators",
+                                        "--black-and-white                                Black and white only",
                                     ],
                                 ),
                             ],
@@ -163,10 +170,62 @@ ParserL1.Command(
             ],
         ),
         ParserL1.Command(
+            command="jobset",
+            sections=[
+                ParserL1.Section(name="Usage", lines=["Usage: jobset [--help] {run}"]),
+                ParserL1.Section(name="Jobset", lines=["Jobset"]),
+                ParserL1.Section(
+                    name="Optional arguments",
+                    lines=[
+                        "Optional arguments:",
+                        "-h, --help  Shows help message and exits",
+                    ],
+                ),
+                ParserL1.Section(
+                    name="Subcommands",
+                    lines=["Subcommands:", "run        Runs a jobset file"],
+                ),
+            ],
+            subcommands=[
+                ParserL1.Command(
+                    command="run",
+                    sections=[
+                        ParserL1.Section(
+                            name="Usage",
+                            lines=[
+                                "Usage: run [--help] [--stop-on-error] [--file JOB_FILE] [--output OUTPUT] INPUT_FILE"
+                            ],
+                        ),
+                        ParserL1.Section(
+                            name="Runs a jobset file", lines=["Runs a jobset file"]
+                        ),
+                        ParserL1.Section(
+                            name="Positional arguments",
+                            lines=[
+                                "Positional arguments:",
+                                "INPUT_FILE       Input file",
+                            ],
+                        ),
+                        ParserL1.Section(
+                            name="Optional arguments",
+                            lines=[
+                                "Optional arguments:",
+                                "-h, --help       Shows help message and exits",
+                                "--stop-on-error  Stops processing jobs as they are executed sequentially on the first failure of a job",
+                                '-f, --file       Jobset file to be run [nargs=0..1] [default: ""]',
+                                '--output         Jobset file output to generate, leave blank for all outputs defined in the jobset [nargs=0..1] [default: ""]',
+                            ],
+                        ),
+                    ],
+                    subcommands=[],
+                )
+            ],
+        ),
+        ParserL1.Command(
             command="pcb",
             sections=[
                 ParserL1.Section(
-                    name="Usage", lines=["Usage: pcb [--help] {drc,export}"]
+                    name="Usage", lines=["Usage: pcb [--help] {drc,export,render}"]
                 ),
                 ParserL1.Section(name="PCB", lines=["PCB"]),
                 ParserL1.Section(
@@ -182,6 +241,7 @@ ParserL1.Command(
                         "Subcommands:",
                         "drc        Runs the Design Rules Check (DRC) on the PCB and creates a report",
                         "export     Export utilities (Gerbers, drill, position files, etc)",
+                        "render     Renders the PCB in 3D view to PNG or JPEG image",
                     ],
                 ),
             ],
@@ -236,7 +296,7 @@ ParserL1.Command(
                         ParserL1.Section(
                             name="Usage",
                             lines=[
-                                "Usage: export [--help] {drill,dxf,gerber,gerbers,glb,ipc2581,pdf,pos,step,svg,vrml}"
+                                "Usage: export [--help] {brep,drill,dxf,gencad,gerber,gerbers,glb,ipc2581,ipcd356,odb,pdf,ply,pos,step,stl,svg,vrml,xao}"
                             ],
                         ),
                         ParserL1.Section(
@@ -256,21 +316,82 @@ ParserL1.Command(
                             name="Subcommands",
                             lines=[
                                 "Subcommands:",
+                                "brep       Export BREP",
                                 "drill      Generate Drill Files",
                                 "dxf        Generate a DXF from a list of layers",
+                                "gencad     Generate Gencad from a list of layers",
                                 "gerber     Plot given layers to a single Gerber file",
                                 "gerbers    Plot multiple Gerbers for a PCB, including the ability to use stored board plot settings",
                                 "glb        Export GLB (binary GLTF)",
-                                "ipc2581    Export the PCB in IPC2581 format",
+                                "ipc2581    Export the PCB in IPC-2581 format",
+                                "ipcd356    Generate IPC-D-356 netlist file",
+                                "odb        Export the PCB in ODB++ format",
                                 "pdf        Generate PDF from a list of layers",
+                                "ply        Export PLY",
                                 "pos        Generate Position File",
                                 "step       Export STEP",
+                                "stl        Export STL",
                                 "svg        Generate SVG outputs of a given layer list",
                                 "vrml       Export VRML",
+                                "xao        Export XAO",
                             ],
                         ),
                     ],
                     subcommands=[
+                        ParserL1.Command(
+                            command="brep",
+                            sections=[
+                                ParserL1.Section(
+                                    name="Usage",
+                                    lines=[
+                                        "Usage: brep [--help] [--output OUTPUT_FILE] [--define-var KEY=VALUE] [--force] [--no-unspecified] [--no-dnp] [--grid-origin] [--drill-origin] [--subst-models] [--board-only] [--cut-vias-in-body] [--no-board-body] [--no-components] [--component-filter VAR] [--include-tracks] [--include-pads] [--include-zones] [--include-inner-copper] [--include-silkscreen] [--include-soldermask] [--fuse-shapes] [--fill-all-vias] [--min-distance MIN_DIST] [--net-filter VAR] [--user-origin VAR] INPUT_FILE"
+                                    ],
+                                ),
+                                ParserL1.Section(
+                                    name="Export BREP", lines=["Export BREP"]
+                                ),
+                                ParserL1.Section(
+                                    name="Positional arguments",
+                                    lines=[
+                                        "Positional arguments:",
+                                        "INPUT_FILE              Input file",
+                                    ],
+                                ),
+                                ParserL1.Section(
+                                    name="Optional arguments",
+                                    lines=[
+                                        "Optional arguments:",
+                                        "-h, --help              Shows help message and exits",
+                                        '-o, --output            Output file [nargs=0..1] [default: ""]',
+                                        "-D, --define-var        Overrides or adds project variables, can be used multiple times to declare multiple variables.",
+                                        "Use in the format of '--define-var key=value' or '-D key=value' [nargs=0..1] [default: {}]",
+                                        "-f, --force             Overwrite output file",
+                                        "--no-unspecified        Exclude 3D models for components with 'Unspecified' footprint type",
+                                        "--no-dnp                Exclude 3D models for components with 'Do not populate' attribute",
+                                        "--grid-origin           Use Grid Origin for output origin",
+                                        "--drill-origin          Use Drill Origin for output origin",
+                                        "--subst-models          Substitute STEP or IGS models with the same name in place of VRML models",
+                                        "--board-only            Only generate a board with no components",
+                                        "--cut-vias-in-body      Cut via holes in board body even if conductor layers are not exported.",
+                                        "--no-board-body         Exclude board body",
+                                        "--no-components         Exclude 3D models for components",
+                                        '--component-filter      Only include component 3D models matching this list of reference designators (comma-separated, wildcards supported) [nargs=0..1] [default: ""]',
+                                        "--include-tracks        Export tracks and vias",
+                                        "--include-pads          Export pads",
+                                        "--include-zones         Export zones",
+                                        "--include-inner-copper  Export elements on inner copper layers",
+                                        "--include-silkscreen    Export silkscreen graphics as a set of flat faces",
+                                        "--include-soldermask    Export soldermask layers as a set of flat faces",
+                                        "--fuse-shapes           Fuse overlapping geometry together",
+                                        "--fill-all-vias         Don't cut via holes in conductor layers.",
+                                        '--min-distance          Minimum distance between points to treat them as separate ones [nargs=0..1] [default: "0.01mm"]',
+                                        '--net-filter            Only include copper items belonging to nets matching this wildcard [nargs=0..1] [default: ""]',
+                                        '--user-origin           User-specified output origin ex. 1x1in, 1x1inch, 25.4x25.4mm (default unit mm) [nargs=0..1] [default: ""]',
+                                    ],
+                                ),
+                            ],
+                            subcommands=[],
+                        ),
                         ParserL1.Command(
                             command="drill",
                             sections=[
@@ -319,7 +440,7 @@ ParserL1.Command(
                                 ParserL1.Section(
                                     name="Usage",
                                     lines=[
-                                        "Usage: dxf [--help] [--output OUTPUT_FILE] [--layers LAYER_LIST] [--drawing-sheet SHEET_PATH] [--define-var KEY=VALUE] [--exclude-refdes] [--exclude-value] [--use-contours] [--include-border-title] [--output-units UNITS] INPUT_FILE"
+                                        "Usage: dxf [--help] [--output OUTPUT_FILE] [--layers LAYER_LIST] [--drawing-sheet SHEET_PATH] [--define-var KEY=VALUE] [--exclude-refdes] [--exclude-value] [--sketch-pads-on-fab-layers] [--hide-DNP-footprints-on-fab-layers] [--sketch-DNP-footprints-on-fab-layers] [--crossout-DNP-footprints-on-fab-layers] [--subtract-soldermask] [--use-contours] [--use-drill-origin] [--include-border-title] [--output-units UNITS] [--drill-shape-opt VAR] [--common-layers COMMON_LAYER_LIST] [--mode-single] [--mode-multi] [--plot-invisible-text] INPUT_FILE"
                                     ],
                                 ),
                                 ParserL1.Section(
@@ -330,24 +451,73 @@ ParserL1.Command(
                                     name="Positional arguments",
                                     lines=[
                                         "Positional arguments:",
-                                        "INPUT_FILE                     Input file",
+                                        "INPUT_FILE                                       Input file",
                                     ],
                                 ),
                                 ParserL1.Section(
                                     name="Optional arguments",
                                     lines=[
                                         "Optional arguments:",
-                                        "-h, --help                     Shows help message and exits",
-                                        '-o, --output                   Output file [nargs=0..1] [default: ""]',
-                                        '-l, --layers                   Comma separated list of untranslated layer names to include such as F.Cu,B.Cu [nargs=0..1] [default: ""]',
-                                        '--drawing-sheet                Path to drawing sheet, this overrides any existing project defined sheet when used [nargs=0..1] [default: ""]',
-                                        "-D, --define-var               Overrides or adds project variables, can be used multiple times to declare multiple variables.",
+                                        "-h, --help                                       Shows help message and exits",
+                                        '-o, --output                                     Output file [nargs=0..1] [default: ""]',
+                                        '-l, --layers                                     Comma separated list of untranslated layer names to include such as F.Cu,B.Cu [nargs=0..1] [default: ""]',
+                                        '--drawing-sheet                                  Path to drawing sheet, this overrides any existing project defined sheet when used [nargs=0..1] [default: ""]',
+                                        "-D, --define-var                                 Overrides or adds project variables, can be used multiple times to declare multiple variables.",
                                         "Use in the format of '--define-var key=value' or '-D key=value' [nargs=0..1] [default: {}]",
-                                        "--erd, --exclude-refdes        Exclude the reference designator text",
-                                        "--ev, --exclude-value          Exclude the value text",
-                                        "--uc, --use-contours           Plot graphic items using their contours",
-                                        "--ibt, --include-border-title  Include the border and title block",
-                                        '--ou, --output-units           Output units, valid options: mm, in [nargs=0..1] [default: "in"]',
+                                        "--erd, --exclude-refdes                          Exclude the reference designator text",
+                                        "--ev, --exclude-value                            Exclude the value text",
+                                        "--sp, --sketch-pads-on-fab-layers                Draw pad outlines and their numbers on front and back fab layers",
+                                        "--hdnp, --hide-DNP-footprints-on-fab-layers      Don't plot text & graphics of DNP footprints on fab layers",
+                                        "--sdnp, --sketch-DNP-footprints-on-fab-layers    Plot graphics of DNP footprints in sketch mode on fab layers",
+                                        "--cdnp, --crossout-DNP-footprints-on-fab-layers  Plot an 'X' over the courtyard of DNP footprints on fab layers, and strikeout their reference designators",
+                                        "--subtract-soldermask                            Subtract soldermask from silkscreen",
+                                        "--uc, --use-contours                             Plot graphic items using their contours",
+                                        "--udo, --use-drill-origin                        Plot using the drill/place file origin",
+                                        "--ibt, --include-border-title                    Include the border and title block",
+                                        '--ou, --output-units                             Output units, valid options: mm, in [nargs=0..1] [default: "in"]',
+                                        "--drill-shape-opt                                Set pad/via drill shape option (0 = no shape, 1 = small shape, 2 = actual shape) [nargs=0..1] [default: 2]",
+                                        '--cl, --common-layers                            Layers to include on each plot, comma separated list of untranslated layer names to include such as F.Cu,B.Cu [nargs=0..1] [default: ""]',
+                                        "--mode-single                                    Generates a single file with the output arg path acting as the complete directory and filename path. COMMON_LAYER_LIST does not function in this mode. Instead LAYER_LIST controls all layers plotted.",
+                                        "--mode-multi                                     Generates one or more files with behavior similar to the KiCad GUI plotting. The given output path specifies a directory in which files may be output.",
+                                        "--plot-invisible-text                            Deprecated.  Has no effect.",
+                                    ],
+                                ),
+                            ],
+                            subcommands=[],
+                        ),
+                        ParserL1.Command(
+                            command="gencad",
+                            sections=[
+                                ParserL1.Section(
+                                    name="Usage",
+                                    lines=[
+                                        "Usage: gencad [--help] [--output OUTPUT_FILE] [--define-var KEY=VALUE] [--flip-bottom-pads] [--unique-pins] [--unique-footprints] [--use-drill-origin] [--store-origin-coord] INPUT_FILE"
+                                    ],
+                                ),
+                                ParserL1.Section(
+                                    name="Generate Gencad from a list of layers",
+                                    lines=["Generate Gencad from a list of layers"],
+                                ),
+                                ParserL1.Section(
+                                    name="Positional arguments",
+                                    lines=[
+                                        "Positional arguments:",
+                                        "INPUT_FILE              Input file",
+                                    ],
+                                ),
+                                ParserL1.Section(
+                                    name="Optional arguments",
+                                    lines=[
+                                        "Optional arguments:",
+                                        "-h, --help              Shows help message and exits",
+                                        '-o, --output            Output file [nargs=0..1] [default: ""]',
+                                        "-D, --define-var        Overrides or adds project variables, can be used multiple times to declare multiple variables.",
+                                        "Use in the format of '--define-var key=value' or '-D key=value' [nargs=0..1] [default: {}]",
+                                        "-f, --flip-bottom-pads  Flip bottom footprint padstacks",
+                                        "--unique-pins          Generate unique pin names",
+                                        "--unique-footprints    Generate a new shape for each footprint instance (do not reuse shapes)",
+                                        "--use-drill-origin     Use drill/place file origin as origin",
+                                        "--store-origin-coord   Save the origin coordinates in the file",
                                     ],
                                 ),
                             ],
@@ -359,7 +529,7 @@ ParserL1.Command(
                                 ParserL1.Section(
                                     name="Usage",
                                     lines=[
-                                        "Usage: gerber [--help] [--output OUTPUT_FILE] [--layers LAYER_LIST] [--drawing-sheet SHEET_PATH] [--define-var KEY=VALUE] [--exclude-refdes] [--exclude-value] [--include-border-title] [--no-x2] [--no-netlist] [--subtract-soldermask] [--disable-aperture-macros] [--use-drill-file-origin] [--precision PRECISION] [--no-protel-ext] INPUT_FILE"
+                                        "Usage: gerber [--help] [--output OUTPUT_FILE] [--layers LAYER_LIST] [--drawing-sheet SHEET_PATH] [--define-var KEY=VALUE] [--exclude-refdes] [--exclude-value] [--include-border-title] [--sketch-pads-on-fab-layers] [--hide-DNP-footprints-on-fab-layers] [--sketch-DNP-footprints-on-fab-layers] [--crossout-DNP-footprints-on-fab-layers] [--no-x2] [--no-netlist] [--subtract-soldermask] [--disable-aperture-macros] [--use-drill-file-origin] [--common-layers COMMON_LAYER_LIST] [--precision PRECISION] [--no-protel-ext] [--plot-invisible-text] INPUT_FILE"
                                     ],
                                 ),
                                 ParserL1.Section(
@@ -370,29 +540,35 @@ ParserL1.Command(
                                     name="Positional arguments",
                                     lines=[
                                         "Positional arguments:",
-                                        "INPUT_FILE                     Input file",
+                                        "INPUT_FILE                                       Input file",
                                     ],
                                 ),
                                 ParserL1.Section(
                                     name="Optional arguments",
                                     lines=[
                                         "Optional arguments:",
-                                        "-h, --help                     Shows help message and exits",
-                                        '-o, --output                   Output file [nargs=0..1] [default: ""]',
-                                        '-l, --layers                   Comma separated list of untranslated layer names to include such as F.Cu,B.Cu [nargs=0..1] [default: ""]',
-                                        '--drawing-sheet                Path to drawing sheet, this overrides any existing project defined sheet when used [nargs=0..1] [default: ""]',
-                                        "-D, --define-var               Overrides or adds project variables, can be used multiple times to declare multiple variables.",
+                                        "-h, --help                                       Shows help message and exits",
+                                        '-o, --output                                     Output file [nargs=0..1] [default: ""]',
+                                        '-l, --layers                                     Comma separated list of untranslated layer names to include such as F.Cu,B.Cu [nargs=0..1] [default: ""]',
+                                        '--drawing-sheet                                  Path to drawing sheet, this overrides any existing project defined sheet when used [nargs=0..1] [default: ""]',
+                                        "-D, --define-var                                 Overrides or adds project variables, can be used multiple times to declare multiple variables.",
                                         "Use in the format of '--define-var key=value' or '-D key=value' [nargs=0..1] [default: {}]",
-                                        "--erd, --exclude-refdes        Exclude the reference designator text",
-                                        "--ev, --exclude-value          Exclude the value text",
-                                        "--ibt, --include-border-title  Include the border and title block",
-                                        "--no-x2                        Do not use the extended X2 format",
-                                        "--no-netlist                   Do not generate netlist attributes",
-                                        "--subtract-soldermask          Subtract soldermask from silkscreen",
-                                        "--disable-aperture-macros      Disable aperture macros",
-                                        "--use-drill-file-origin        Use drill/place file origin",
-                                        "--precision                    Precision of Gerber coordinates, valid options: 5 or 6 [nargs=0..1] [default: 6]",
-                                        "--no-protel-ext                Use KiCad Gerber file extension",
+                                        "--erd, --exclude-refdes                          Exclude the reference designator text",
+                                        "--ev, --exclude-value                            Exclude the value text",
+                                        "--ibt, --include-border-title                    Include the border and title block",
+                                        "--sp, --sketch-pads-on-fab-layers                Draw pad outlines and their numbers on front and back fab layers",
+                                        "--hdnp, --hide-DNP-footprints-on-fab-layers      Don't plot text & graphics of DNP footprints on fab layers",
+                                        "--sdnp, --sketch-DNP-footprints-on-fab-layers    Plot graphics of DNP footprints in sketch mode on fab layers",
+                                        "--cdnp, --crossout-DNP-footprints-on-fab-layers  Plot an 'X' over the courtyard of DNP footprints on fab layers, and strikeout their reference designators",
+                                        "--no-x2                                          Do not use the extended X2 format",
+                                        "--no-netlist                                     Do not generate netlist attributes",
+                                        "--subtract-soldermask                            Subtract soldermask from silkscreen",
+                                        "--disable-aperture-macros                        Disable aperture macros",
+                                        "--use-drill-file-origin                          Use drill/place file origin",
+                                        '--cl, --common-layers                            Layers to include on each plot, comma separated list of untranslated layer names to include such as F.Cu,B.Cu [nargs=0..1] [default: ""]',
+                                        "--precision                                      Precision of Gerber coordinates, valid options: 5 or 6 [nargs=0..1] [default: 6]",
+                                        "--no-protel-ext                                  Use KiCad Gerber file extension",
+                                        "--plot-invisible-text                            Deprecated.  Has no effect.",
                                     ],
                                 ),
                             ],
@@ -404,7 +580,7 @@ ParserL1.Command(
                                 ParserL1.Section(
                                     name="Usage",
                                     lines=[
-                                        "Usage: gerbers [--help] [--output OUTPUT_FILE] [--layers LAYER_LIST] [--drawing-sheet SHEET_PATH] [--define-var KEY=VALUE] [--exclude-refdes] [--exclude-value] [--include-border-title] [--no-x2] [--no-netlist] [--subtract-soldermask] [--disable-aperture-macros] [--use-drill-file-origin] [--precision PRECISION] [--no-protel-ext] [--common-layers COMMON_LAYER_LIST] [--board-plot-params] INPUT_FILE"
+                                        "Usage: gerbers [--help] [--output OUTPUT_FILE] [--layers LAYER_LIST] [--drawing-sheet SHEET_PATH] [--define-var KEY=VALUE] [--exclude-refdes] [--exclude-value] [--include-border-title] [--sketch-pads-on-fab-layers] [--hide-DNP-footprints-on-fab-layers] [--sketch-DNP-footprints-on-fab-layers] [--crossout-DNP-footprints-on-fab-layers] [--no-x2] [--no-netlist] [--subtract-soldermask] [--disable-aperture-macros] [--use-drill-file-origin] [--common-layers COMMON_LAYER_LIST] [--precision PRECISION] [--no-protel-ext] [--plot-invisible-text] [--common-layers COMMON_LAYER_LIST] [--board-plot-params] INPUT_FILE"
                                     ],
                                 ),
                                 ParserL1.Section(
@@ -417,31 +593,37 @@ ParserL1.Command(
                                     name="Positional arguments",
                                     lines=[
                                         "Positional arguments:",
-                                        "INPUT_FILE                     Input file",
+                                        "INPUT_FILE                                       Input file",
                                     ],
                                 ),
                                 ParserL1.Section(
                                     name="Optional arguments",
                                     lines=[
                                         "Optional arguments:",
-                                        "-h, --help                     Shows help message and exits",
-                                        '-o, --output                   Output file [nargs=0..1] [default: ""]',
-                                        '-l, --layers                   Comma separated list of untranslated layer names to include such as F.Cu,B.Cu [nargs=0..1] [default: ""]',
-                                        '--drawing-sheet                Path to drawing sheet, this overrides any existing project defined sheet when used [nargs=0..1] [default: ""]',
-                                        "-D, --define-var               Overrides or adds project variables, can be used multiple times to declare multiple variables.",
+                                        "-h, --help                                       Shows help message and exits",
+                                        '-o, --output                                     Output file [nargs=0..1] [default: ""]',
+                                        '-l, --layers                                     Comma separated list of untranslated layer names to include such as F.Cu,B.Cu [nargs=0..1] [default: ""]',
+                                        '--drawing-sheet                                  Path to drawing sheet, this overrides any existing project defined sheet when used [nargs=0..1] [default: ""]',
+                                        "-D, --define-var                                 Overrides or adds project variables, can be used multiple times to declare multiple variables.",
                                         "Use in the format of '--define-var key=value' or '-D key=value' [nargs=0..1] [default: {}]",
-                                        "--erd, --exclude-refdes        Exclude the reference designator text",
-                                        "--ev, --exclude-value          Exclude the value text",
-                                        "--ibt, --include-border-title  Include the border and title block",
-                                        "--no-x2                        Do not use the extended X2 format",
-                                        "--no-netlist                   Do not generate netlist attributes",
-                                        "--subtract-soldermask          Subtract soldermask from silkscreen",
-                                        "--disable-aperture-macros      Disable aperture macros",
-                                        "--use-drill-file-origin        Use drill/place file origin",
-                                        "--precision                    Precision of Gerber coordinates, valid options: 5 or 6 [nargs=0..1] [default: 6]",
-                                        "--no-protel-ext                Use KiCad Gerber file extension",
-                                        '--cl, --common-layers          Layers to include on each plot, comma separated list of untranslated layer names to include such as F.Cu,B.Cu [nargs=0..1] [default: ""]',
-                                        "--board-plot-params            Use the Gerber plot settings already configured in the board file",
+                                        "--erd, --exclude-refdes                          Exclude the reference designator text",
+                                        "--ev, --exclude-value                            Exclude the value text",
+                                        "--ibt, --include-border-title                    Include the border and title block",
+                                        "--sp, --sketch-pads-on-fab-layers                Draw pad outlines and their numbers on front and back fab layers",
+                                        "--hdnp, --hide-DNP-footprints-on-fab-layers      Don't plot text & graphics of DNP footprints on fab layers",
+                                        "--sdnp, --sketch-DNP-footprints-on-fab-layers    Plot graphics of DNP footprints in sketch mode on fab layers",
+                                        "--cdnp, --crossout-DNP-footprints-on-fab-layers  Plot an 'X' over the courtyard of DNP footprints on fab layers, and strikeout their reference designators",
+                                        "--no-x2                                          Do not use the extended X2 format",
+                                        "--no-netlist                                     Do not generate netlist attributes",
+                                        "--subtract-soldermask                            Subtract soldermask from silkscreen",
+                                        "--disable-aperture-macros                        Disable aperture macros",
+                                        "--use-drill-file-origin                          Use drill/place file origin",
+                                        '--cl, --common-layers                            Layers to include on each plot, comma separated list of untranslated layer names to include such as F.Cu,B.Cu [nargs=0..1] [default: ""]',
+                                        "--precision                                      Precision of Gerber coordinates, valid options: 5 or 6 [nargs=0..1] [default: 6]",
+                                        "--no-protel-ext                                  Use KiCad Gerber file extension",
+                                        "--plot-invisible-text                            Deprecated.  Has no effect.",
+                                        '--cl, --common-layers                            Layers to include on each plot, comma separated list of untranslated layer names to include such as F.Cu,B.Cu [nargs=0..1] [default: ""]',
+                                        "--board-plot-params                              Use the Gerber plot settings already configured in the board file",
                                     ],
                                 ),
                             ],
@@ -453,7 +635,7 @@ ParserL1.Command(
                                 ParserL1.Section(
                                     name="Usage",
                                     lines=[
-                                        "Usage: glb [--help] [--output OUTPUT_FILE] [--define-var KEY=VALUE] [--force] [--grid-origin] [--drill-origin] [--no-unspecified] [--no-dnp] [--subst-models] [--board-only] [--include-tracks] [--include-zones] [--min-distance MIN_DIST] [--user-origin VAR] INPUT_FILE"
+                                        "Usage: glb [--help] [--output OUTPUT_FILE] [--define-var KEY=VALUE] [--force] [--no-unspecified] [--no-dnp] [--grid-origin] [--drill-origin] [--subst-models] [--board-only] [--cut-vias-in-body] [--no-board-body] [--no-components] [--component-filter VAR] [--include-tracks] [--include-pads] [--include-zones] [--include-inner-copper] [--include-silkscreen] [--include-soldermask] [--fuse-shapes] [--fill-all-vias] [--min-distance MIN_DIST] [--net-filter VAR] [--user-origin VAR] INPUT_FILE"
                                     ],
                                 ),
                                 ParserL1.Section(
@@ -464,28 +646,39 @@ ParserL1.Command(
                                     name="Positional arguments",
                                     lines=[
                                         "Positional arguments:",
-                                        "INPUT_FILE        Input file",
+                                        "INPUT_FILE              Input file",
                                     ],
                                 ),
                                 ParserL1.Section(
                                     name="Optional arguments",
                                     lines=[
                                         "Optional arguments:",
-                                        "-h, --help        Shows help message and exits",
-                                        '-o, --output      Output file [nargs=0..1] [default: ""]',
-                                        "-D, --define-var  Overrides or adds project variables, can be used multiple times to declare multiple variables.",
+                                        "-h, --help              Shows help message and exits",
+                                        '-o, --output            Output file [nargs=0..1] [default: ""]',
+                                        "-D, --define-var        Overrides or adds project variables, can be used multiple times to declare multiple variables.",
                                         "Use in the format of '--define-var key=value' or '-D key=value' [nargs=0..1] [default: {}]",
-                                        "-f, --force       Overwrite output file",
-                                        "--grid-origin     Use Grid Origin for output origin",
-                                        "--drill-origin    Use Drill Origin for output origin",
-                                        "--no-unspecified  Exclude 3D models for components with 'Unspecified' footprint type",
-                                        "--no-dnp          Exclude 3D models for components with 'Do not populate' attribute",
-                                        "--subst-models    Substitute STEP or IGS models with the same name in place of VRML models",
-                                        "--board-only      Only generate a board with no components",
-                                        "--include-tracks  Export tracks",
-                                        "--include-zones   Export zones",
-                                        '--min-distance    Minimum distance between points to treat them as separate ones [nargs=0..1] [default: "0.01mm"]',
-                                        '--user-origin     User-specified output origin ex. 1x1in, 1x1inch, 25.4x25.4mm (default unit mm) [nargs=0..1] [default: ""]',
+                                        "-f, --force             Overwrite output file",
+                                        "--no-unspecified        Exclude 3D models for components with 'Unspecified' footprint type",
+                                        "--no-dnp                Exclude 3D models for components with 'Do not populate' attribute",
+                                        "--grid-origin           Use Grid Origin for output origin",
+                                        "--drill-origin          Use Drill Origin for output origin",
+                                        "--subst-models          Substitute STEP or IGS models with the same name in place of VRML models",
+                                        "--board-only            Only generate a board with no components",
+                                        "--cut-vias-in-body      Cut via holes in board body even if conductor layers are not exported.",
+                                        "--no-board-body         Exclude board body",
+                                        "--no-components         Exclude 3D models for components",
+                                        '--component-filter      Only include component 3D models matching this list of reference designators (comma-separated, wildcards supported) [nargs=0..1] [default: ""]',
+                                        "--include-tracks        Export tracks and vias",
+                                        "--include-pads          Export pads",
+                                        "--include-zones         Export zones",
+                                        "--include-inner-copper  Export elements on inner copper layers",
+                                        "--include-silkscreen    Export silkscreen graphics as a set of flat faces",
+                                        "--include-soldermask    Export soldermask layers as a set of flat faces",
+                                        "--fuse-shapes           Fuse overlapping geometry together",
+                                        "--fill-all-vias         Don't cut via holes in conductor layers.",
+                                        '--min-distance          Minimum distance between points to treat them as separate ones [nargs=0..1] [default: "0.01mm"]',
+                                        '--net-filter            Only include copper items belonging to nets matching this wildcard [nargs=0..1] [default: ""]',
+                                        '--user-origin           User-specified output origin ex. 1x1in, 1x1inch, 25.4x25.4mm (default unit mm) [nargs=0..1] [default: ""]',
                                     ],
                                 ),
                             ],
@@ -501,8 +694,8 @@ ParserL1.Command(
                                     ],
                                 ),
                                 ParserL1.Section(
-                                    name="Export the PCB in IPC2581 format",
-                                    lines=["Export the PCB in IPC2581 format"],
+                                    name="Export the PCB in IPC-2581 format",
+                                    lines=["Export the PCB in IPC-2581 format"],
                                 ),
                                 ParserL1.Section(
                                     name="Positional arguments",
@@ -520,9 +713,9 @@ ParserL1.Command(
                                         '--drawing-sheet    Path to drawing sheet, this overrides any existing project defined sheet when used [nargs=0..1] [default: ""]',
                                         "-D, --define-var   Overrides or adds project variables, can be used multiple times to declare multiple variables.",
                                         "Use in the format of '--define-var key=value' or '-D key=value' [nargs=0..1] [default: {}]",
-                                        "--precision        Precision [nargs=0..1] [default: 3]",
+                                        "--precision        Precision [nargs=0..1] [default: 6]",
                                         "--compress         Compress the output",
-                                        '--version          IPC2581 standard version [nargs=0..1] [default: "C"]',
+                                        '--version          IPC-2581 standard version [nargs=0..1] [default: "C"]',
                                         '--units            Units [nargs=0..1] [default: "mm"]',
                                         '--bom-col-int-id   Name of the part field to use for the Bill of Material Internal Id Column [nargs=0..1] [default: ""]',
                                         '--bom-col-mfg-pn   Name of the part field to use for the Bill of Material Manufacturer Part Number Column [nargs=0..1] [default: ""]',
@@ -535,12 +728,80 @@ ParserL1.Command(
                             subcommands=[],
                         ),
                         ParserL1.Command(
+                            command="ipcd356",
+                            sections=[
+                                ParserL1.Section(
+                                    name="Usage",
+                                    lines=[
+                                        "Usage: ipcd356 [--help] [--output OUTPUT_FILE] INPUT_FILE"
+                                    ],
+                                ),
+                                ParserL1.Section(
+                                    name="Generate IPC-D-356 netlist file",
+                                    lines=["Generate IPC-D-356 netlist file"],
+                                ),
+                                ParserL1.Section(
+                                    name="Positional arguments",
+                                    lines=[
+                                        "Positional arguments:",
+                                        "INPUT_FILE    Input file",
+                                    ],
+                                ),
+                                ParserL1.Section(
+                                    name="Optional arguments",
+                                    lines=[
+                                        "Optional arguments:",
+                                        "-h, --help    Shows help message and exits",
+                                        '-o, --output  Output file [nargs=0..1] [default: ""]',
+                                    ],
+                                ),
+                            ],
+                            subcommands=[],
+                        ),
+                        ParserL1.Command(
+                            command="odb",
+                            sections=[
+                                ParserL1.Section(
+                                    name="Usage",
+                                    lines=[
+                                        "Usage: odb [--help] [--output OUTPUT_FILE] [--drawing-sheet SHEET_PATH] [--define-var KEY=VALUE] [--precision PRECISION] [--compression VAR] [--units VAR] INPUT_FILE"
+                                    ],
+                                ),
+                                ParserL1.Section(
+                                    name="Export the PCB in ODB++ format",
+                                    lines=["Export the PCB in ODB++ format"],
+                                ),
+                                ParserL1.Section(
+                                    name="Positional arguments",
+                                    lines=[
+                                        "Positional arguments:",
+                                        "INPUT_FILE        Input file",
+                                    ],
+                                ),
+                                ParserL1.Section(
+                                    name="Optional arguments",
+                                    lines=[
+                                        "Optional arguments:",
+                                        "-h, --help        Shows help message and exits",
+                                        '-o, --output      Output file [nargs=0..1] [default: ""]',
+                                        '--drawing-sheet   Path to drawing sheet, this overrides any existing project defined sheet when used [nargs=0..1] [default: ""]',
+                                        "-D, --define-var  Overrides or adds project variables, can be used multiple times to declare multiple variables.",
+                                        "Use in the format of '--define-var key=value' or '-D key=value' [nargs=0..1] [default: {}]",
+                                        "--precision       Precision [nargs=0..1] [default: 2]",
+                                        '--compression     Compression mode [nargs=0..1] [default: "zip"]',
+                                        '--units           Units [nargs=0..1] [default: "mm"]',
+                                    ],
+                                ),
+                            ],
+                            subcommands=[],
+                        ),
+                        ParserL1.Command(
                             command="pdf",
                             sections=[
                                 ParserL1.Section(
                                     name="Usage",
                                     lines=[
-                                        "Usage: pdf [--help] [--output OUTPUT_FILE] [--layers LAYER_LIST] [--drawing-sheet SHEET_PATH] [--define-var KEY=VALUE] [--mirror] [--exclude-refdes] [--exclude-value] [--include-border-title] [--negative] [--black-and-white] [--theme THEME_NAME] [--drill-shape-opt VAR] INPUT_FILE"
+                                        "Usage: pdf [--help] [--output OUTPUT_FILE] [--layers LAYER_LIST] [--drawing-sheet SHEET_PATH] [--define-var KEY=VALUE] [--mirror] [--exclude-refdes] [--exclude-value] [--include-border-title] [--subtract-soldermask] [--sketch-pads-on-fab-layers] [--hide-DNP-footprints-on-fab-layers] [--sketch-DNP-footprints-on-fab-layers] [--crossout-DNP-footprints-on-fab-layers] [--negative] [--black-and-white] [--theme THEME_NAME] [--drill-shape-opt VAR] [--common-layers COMMON_LAYER_LIST] [--plot-invisible-text] [--mode-single] [--mode-separate] [--mode-multipage] INPUT_FILE"
                                     ],
                                 ),
                                 ParserL1.Section(
@@ -551,27 +812,91 @@ ParserL1.Command(
                                     name="Positional arguments",
                                     lines=[
                                         "Positional arguments:",
-                                        "INPUT_FILE                     Input file",
+                                        "INPUT_FILE                                       Input file",
                                     ],
                                 ),
                                 ParserL1.Section(
                                     name="Optional arguments",
                                     lines=[
                                         "Optional arguments:",
-                                        "-h, --help                     Shows help message and exits",
-                                        '-o, --output                   Output file [nargs=0..1] [default: ""]',
-                                        '-l, --layers                   Comma separated list of untranslated layer names to include such as F.Cu,B.Cu [nargs=0..1] [default: ""]',
-                                        '--drawing-sheet                Path to drawing sheet, this overrides any existing project defined sheet when used [nargs=0..1] [default: ""]',
-                                        "-D, --define-var               Overrides or adds project variables, can be used multiple times to declare multiple variables.",
+                                        "-h, --help                                       Shows help message and exits",
+                                        '-o, --output                                     Output file [nargs=0..1] [default: ""]',
+                                        '-l, --layers                                     Comma separated list of untranslated layer names to include such as F.Cu,B.Cu [nargs=0..1] [default: ""]',
+                                        '--drawing-sheet                                  Path to drawing sheet, this overrides any existing project defined sheet when used [nargs=0..1] [default: ""]',
+                                        "-D, --define-var                                 Overrides or adds project variables, can be used multiple times to declare multiple variables.",
                                         "Use in the format of '--define-var key=value' or '-D key=value' [nargs=0..1] [default: {}]",
-                                        "-m, --mirror                   Mirror the board (useful for trying to show bottom layers)",
-                                        "--erd, --exclude-refdes        Exclude the reference designator text",
-                                        "--ev, --exclude-value          Exclude the value text",
-                                        "--ibt, --include-border-title  Include the border and title block",
-                                        "-n, --negative                 Plot as negative (useful for directly etching from the export)",
-                                        "--black-and-white              Black and white only",
-                                        '-t, --theme                    Color theme to use (will default to PCB Editor settings) [nargs=0..1] [default: ""]',
-                                        "--drill-shape-opt              Set pad/via drill shape option (0 = no shape, 1 = small shape, 2 = actual shape) [nargs=0..1] [default: 2]",
+                                        "-m, --mirror                                     Mirror the board (useful for trying to show bottom layers)",
+                                        "--erd, --exclude-refdes                          Exclude the reference designator text",
+                                        "--ev, --exclude-value                            Exclude the value text",
+                                        "--ibt, --include-border-title                    Include the border and title block",
+                                        "--subtract-soldermask                            Subtract soldermask from silkscreen",
+                                        "--sp, --sketch-pads-on-fab-layers                Draw pad outlines and their numbers on front and back fab layers",
+                                        "--hdnp, --hide-DNP-footprints-on-fab-layers      Don't plot text & graphics of DNP footprints on fab layers",
+                                        "--sdnp, --sketch-DNP-footprints-on-fab-layers    Plot graphics of DNP footprints in sketch mode on fab layers",
+                                        "--cdnp, --crossout-DNP-footprints-on-fab-layers  Plot an 'X' over the courtyard of DNP footprints on fab layers, and strikeout their reference designators",
+                                        "-n, --negative                                   Plot as negative (useful for directly etching from the export)",
+                                        "--black-and-white                                Black and white only",
+                                        '-t, --theme                                      Color theme to use (will default to PCB Editor settings) [nargs=0..1] [default: ""]',
+                                        "--drill-shape-opt                                Set pad/via drill shape option (0 = no shape, 1 = small shape, 2 = actual shape) [nargs=0..1] [default: 2]",
+                                        '--cl, --common-layers                            Layers to include on each plot, comma separated list of untranslated layer names to include such as F.Cu,B.Cu [nargs=0..1] [default: ""]',
+                                        "--plot-invisible-text                            Deprecated.  Has no effect.",
+                                        "--mode-single                                    Generates a single file with the output arg path acting as the complete directory and filename path. COMMON_LAYER_LIST does not function in this mode. Instead LAYER_LIST controls all layers plotted.",
+                                        "--mode-separate                                  Plot the layers to individual PDF files",
+                                        "--mode-multipage                                 Plot the layers to a single PDF file with multiple pages",
+                                    ],
+                                ),
+                            ],
+                            subcommands=[],
+                        ),
+                        ParserL1.Command(
+                            command="ply",
+                            sections=[
+                                ParserL1.Section(
+                                    name="Usage",
+                                    lines=[
+                                        "Usage: ply [--help] [--output OUTPUT_FILE] [--define-var KEY=VALUE] [--force] [--no-unspecified] [--no-dnp] [--grid-origin] [--drill-origin] [--subst-models] [--board-only] [--cut-vias-in-body] [--no-board-body] [--no-components] [--component-filter VAR] [--include-tracks] [--include-pads] [--include-zones] [--include-inner-copper] [--include-silkscreen] [--include-soldermask] [--fuse-shapes] [--fill-all-vias] [--min-distance MIN_DIST] [--net-filter VAR] [--user-origin VAR] INPUT_FILE"
+                                    ],
+                                ),
+                                ParserL1.Section(
+                                    name="Export PLY", lines=["Export PLY"]
+                                ),
+                                ParserL1.Section(
+                                    name="Positional arguments",
+                                    lines=[
+                                        "Positional arguments:",
+                                        "INPUT_FILE              Input file",
+                                    ],
+                                ),
+                                ParserL1.Section(
+                                    name="Optional arguments",
+                                    lines=[
+                                        "Optional arguments:",
+                                        "-h, --help              Shows help message and exits",
+                                        '-o, --output            Output file [nargs=0..1] [default: ""]',
+                                        "-D, --define-var        Overrides or adds project variables, can be used multiple times to declare multiple variables.",
+                                        "Use in the format of '--define-var key=value' or '-D key=value' [nargs=0..1] [default: {}]",
+                                        "-f, --force             Overwrite output file",
+                                        "--no-unspecified        Exclude 3D models for components with 'Unspecified' footprint type",
+                                        "--no-dnp                Exclude 3D models for components with 'Do not populate' attribute",
+                                        "--grid-origin           Use Grid Origin for output origin",
+                                        "--drill-origin          Use Drill Origin for output origin",
+                                        "--subst-models          Substitute STEP or IGS models with the same name in place of VRML models",
+                                        "--board-only            Only generate a board with no components",
+                                        "--cut-vias-in-body      Cut via holes in board body even if conductor layers are not exported.",
+                                        "--no-board-body         Exclude board body",
+                                        "--no-components         Exclude 3D models for components",
+                                        '--component-filter      Only include component 3D models matching this list of reference designators (comma-separated, wildcards supported) [nargs=0..1] [default: ""]',
+                                        "--include-tracks        Export tracks and vias",
+                                        "--include-pads          Export pads",
+                                        "--include-zones         Export zones",
+                                        "--include-inner-copper  Export elements on inner copper layers",
+                                        "--include-silkscreen    Export silkscreen graphics as a set of flat faces",
+                                        "--include-soldermask    Export soldermask layers as a set of flat faces",
+                                        "--fuse-shapes           Fuse overlapping geometry together",
+                                        "--fill-all-vias         Don't cut via holes in conductor layers.",
+                                        '--min-distance          Minimum distance between points to treat them as separate ones [nargs=0..1] [default: "0.01mm"]',
+                                        '--net-filter            Only include copper items belonging to nets matching this wildcard [nargs=0..1] [default: ""]',
+                                        '--user-origin           User-specified output origin ex. 1x1in, 1x1inch, 25.4x25.4mm (default unit mm) [nargs=0..1] [default: ""]',
                                     ],
                                 ),
                             ],
@@ -603,7 +928,7 @@ ParserL1.Command(
                                         "Optional arguments:",
                                         "-h, --help               Shows help message and exits",
                                         '-o, --output             Output file [nargs=0..1] [default: ""]',
-                                        '--side                   Valid options: front,back,both. Gerber format only supports "both". [nargs=0..1] [default: "both"]',
+                                        '--side                   Valid options: front,back,both. Gerber format only supports "front" or "back". [nargs=0..1] [default: "both"]',
                                         '--format                 Valid options: ascii,csv,gerber [nargs=0..1] [default: "ascii"]',
                                         '--units                  Output units; ascii or csv format only; valid options: in,mm [nargs=0..1] [default: "in"]',
                                         "--bottom-negate-x        Use negative X coordinates for footprints on bottom layer (ascii or csv formats only)",
@@ -623,7 +948,7 @@ ParserL1.Command(
                                 ParserL1.Section(
                                     name="Usage",
                                     lines=[
-                                        "Usage: step [--help] [--output OUTPUT_FILE] [--define-var KEY=VALUE] [--force] [--grid-origin] [--drill-origin] [--no-unspecified] [--no-dnp] [--subst-models] [--board-only] [--include-tracks] [--include-zones] [--min-distance MIN_DIST] [--no-optimize-step] [--user-origin VAR] INPUT_FILE"
+                                        "Usage: step [--help] [--output OUTPUT_FILE] [--define-var KEY=VALUE] [--force] [--no-unspecified] [--no-dnp] [--grid-origin] [--drill-origin] [--subst-models] [--board-only] [--cut-vias-in-body] [--no-board-body] [--no-components] [--component-filter VAR] [--include-tracks] [--include-pads] [--include-zones] [--include-inner-copper] [--include-silkscreen] [--include-soldermask] [--fuse-shapes] [--fill-all-vias] [--min-distance MIN_DIST] [--net-filter VAR] [--no-optimize-step] [--user-origin VAR] INPUT_FILE"
                                     ],
                                 ),
                                 ParserL1.Section(
@@ -633,29 +958,94 @@ ParserL1.Command(
                                     name="Positional arguments",
                                     lines=[
                                         "Positional arguments:",
-                                        "INPUT_FILE          Input file",
+                                        "INPUT_FILE              Input file",
                                     ],
                                 ),
                                 ParserL1.Section(
                                     name="Optional arguments",
                                     lines=[
                                         "Optional arguments:",
-                                        "-h, --help          Shows help message and exits",
-                                        '-o, --output        Output file [nargs=0..1] [default: ""]',
-                                        "-D, --define-var    Overrides or adds project variables, can be used multiple times to declare multiple variables.",
+                                        "-h, --help              Shows help message and exits",
+                                        '-o, --output            Output file [nargs=0..1] [default: ""]',
+                                        "-D, --define-var        Overrides or adds project variables, can be used multiple times to declare multiple variables.",
                                         "Use in the format of '--define-var key=value' or '-D key=value' [nargs=0..1] [default: {}]",
-                                        "-f, --force         Overwrite output file",
-                                        "--grid-origin       Use Grid Origin for output origin",
-                                        "--drill-origin      Use Drill Origin for output origin",
-                                        "--no-unspecified    Exclude 3D models for components with 'Unspecified' footprint type",
-                                        "--no-dnp            Exclude 3D models for components with 'Do not populate' attribute",
-                                        "--subst-models      Substitute STEP or IGS models with the same name in place of VRML models",
-                                        "--board-only        Only generate a board with no components",
-                                        "--include-tracks    Export tracks",
-                                        "--include-zones     Export zones",
-                                        '--min-distance      Minimum distance between points to treat them as separate ones [nargs=0..1] [default: "0.01mm"]',
-                                        "--no-optimize-step  Do not optimize STEP file (enables writing parametric curves)",
-                                        '--user-origin       User-specified output origin ex. 1x1in, 1x1inch, 25.4x25.4mm (default unit mm) [nargs=0..1] [default: ""]',
+                                        "-f, --force             Overwrite output file",
+                                        "--no-unspecified        Exclude 3D models for components with 'Unspecified' footprint type",
+                                        "--no-dnp                Exclude 3D models for components with 'Do not populate' attribute",
+                                        "--grid-origin           Use Grid Origin for output origin",
+                                        "--drill-origin          Use Drill Origin for output origin",
+                                        "--subst-models          Substitute STEP or IGS models with the same name in place of VRML models",
+                                        "--board-only            Only generate a board with no components",
+                                        "--cut-vias-in-body      Cut via holes in board body even if conductor layers are not exported.",
+                                        "--no-board-body         Exclude board body",
+                                        "--no-components         Exclude 3D models for components",
+                                        '--component-filter      Only include component 3D models matching this list of reference designators (comma-separated, wildcards supported) [nargs=0..1] [default: ""]',
+                                        "--include-tracks        Export tracks and vias",
+                                        "--include-pads          Export pads",
+                                        "--include-zones         Export zones",
+                                        "--include-inner-copper  Export elements on inner copper layers",
+                                        "--include-silkscreen    Export silkscreen graphics as a set of flat faces",
+                                        "--include-soldermask    Export soldermask layers as a set of flat faces",
+                                        "--fuse-shapes           Fuse overlapping geometry together",
+                                        "--fill-all-vias         Don't cut via holes in conductor layers.",
+                                        '--min-distance          Minimum distance between points to treat them as separate ones [nargs=0..1] [default: "0.01mm"]',
+                                        '--net-filter            Only include copper items belonging to nets matching this wildcard [nargs=0..1] [default: ""]',
+                                        "--no-optimize-step      Do not optimize STEP file (enables writing parametric curves)",
+                                        '--user-origin           User-specified output origin ex. 1x1in, 1x1inch, 25.4x25.4mm (default unit mm) [nargs=0..1] [default: ""]',
+                                    ],
+                                ),
+                            ],
+                            subcommands=[],
+                        ),
+                        ParserL1.Command(
+                            command="stl",
+                            sections=[
+                                ParserL1.Section(
+                                    name="Usage",
+                                    lines=[
+                                        "Usage: stl [--help] [--output OUTPUT_FILE] [--define-var KEY=VALUE] [--force] [--no-unspecified] [--no-dnp] [--grid-origin] [--drill-origin] [--subst-models] [--board-only] [--cut-vias-in-body] [--no-board-body] [--no-components] [--component-filter VAR] [--include-tracks] [--include-pads] [--include-zones] [--include-inner-copper] [--include-silkscreen] [--include-soldermask] [--fuse-shapes] [--fill-all-vias] [--min-distance MIN_DIST] [--net-filter VAR] [--user-origin VAR] INPUT_FILE"
+                                    ],
+                                ),
+                                ParserL1.Section(
+                                    name="Export STL", lines=["Export STL"]
+                                ),
+                                ParserL1.Section(
+                                    name="Positional arguments",
+                                    lines=[
+                                        "Positional arguments:",
+                                        "INPUT_FILE              Input file",
+                                    ],
+                                ),
+                                ParserL1.Section(
+                                    name="Optional arguments",
+                                    lines=[
+                                        "Optional arguments:",
+                                        "-h, --help              Shows help message and exits",
+                                        '-o, --output            Output file [nargs=0..1] [default: ""]',
+                                        "-D, --define-var        Overrides or adds project variables, can be used multiple times to declare multiple variables.",
+                                        "Use in the format of '--define-var key=value' or '-D key=value' [nargs=0..1] [default: {}]",
+                                        "-f, --force             Overwrite output file",
+                                        "--no-unspecified        Exclude 3D models for components with 'Unspecified' footprint type",
+                                        "--no-dnp                Exclude 3D models for components with 'Do not populate' attribute",
+                                        "--grid-origin           Use Grid Origin for output origin",
+                                        "--drill-origin          Use Drill Origin for output origin",
+                                        "--subst-models          Substitute STEP or IGS models with the same name in place of VRML models",
+                                        "--board-only            Only generate a board with no components",
+                                        "--cut-vias-in-body      Cut via holes in board body even if conductor layers are not exported.",
+                                        "--no-board-body         Exclude board body",
+                                        "--no-components         Exclude 3D models for components",
+                                        '--component-filter      Only include component 3D models matching this list of reference designators (comma-separated, wildcards supported) [nargs=0..1] [default: ""]',
+                                        "--include-tracks        Export tracks and vias",
+                                        "--include-pads          Export pads",
+                                        "--include-zones         Export zones",
+                                        "--include-inner-copper  Export elements on inner copper layers",
+                                        "--include-silkscreen    Export silkscreen graphics as a set of flat faces",
+                                        "--include-soldermask    Export soldermask layers as a set of flat faces",
+                                        "--fuse-shapes           Fuse overlapping geometry together",
+                                        "--fill-all-vias         Don't cut via holes in conductor layers.",
+                                        '--min-distance          Minimum distance between points to treat them as separate ones [nargs=0..1] [default: "0.01mm"]',
+                                        '--net-filter            Only include copper items belonging to nets matching this wildcard [nargs=0..1] [default: ""]',
+                                        '--user-origin           User-specified output origin ex. 1x1in, 1x1inch, 25.4x25.4mm (default unit mm) [nargs=0..1] [default: ""]',
                                     ],
                                 ),
                             ],
@@ -667,7 +1057,7 @@ ParserL1.Command(
                                 ParserL1.Section(
                                     name="Usage",
                                     lines=[
-                                        "Usage: svg [--help] [--output OUTPUT_FILE] [--layers LAYER_LIST] [--drawing-sheet SHEET_PATH] [--define-var KEY=VALUE] [--mirror] [--theme THEME_NAME] [--negative] [--black-and-white] [--page-size-mode MODE] [--exclude-drawing-sheet] [--drill-shape-opt SHAPE_OPTION] INPUT_FILE"
+                                        "Usage: svg [--help] [--output OUTPUT_FILE] [--layers LAYER_LIST] [--drawing-sheet SHEET_PATH] [--define-var KEY=VALUE] [--subtract-soldermask] [--mirror] [--theme THEME_NAME] [--negative] [--black-and-white] [--sketch-pads-on-fab-layers] [--hide-DNP-footprints-on-fab-layers] [--sketch-DNP-footprints-on-fab-layers] [--crossout-DNP-footprints-on-fab-layers] [--page-size-mode MODE] [--fit-page-to-board] [--exclude-drawing-sheet] [--drill-shape-opt SHAPE_OPTION] [--common-layers COMMON_LAYER_LIST] [--mode-single] [--mode-multi] [--plot-invisible-text] INPUT_FILE"
                                     ],
                                 ),
                                 ParserL1.Section(
@@ -680,26 +1070,36 @@ ParserL1.Command(
                                     name="Positional arguments",
                                     lines=[
                                         "Positional arguments:",
-                                        "INPUT_FILE               Input file",
+                                        "INPUT_FILE                                       Input file",
                                     ],
                                 ),
                                 ParserL1.Section(
                                     name="Optional arguments",
                                     lines=[
                                         "Optional arguments:",
-                                        "-h, --help               Shows help message and exits",
-                                        '-o, --output             Output file [nargs=0..1] [default: ""]',
-                                        '-l, --layers             Comma separated list of untranslated layer names to include such as F.Cu,B.Cu [nargs=0..1] [default: ""]',
-                                        '--drawing-sheet          Path to drawing sheet, this overrides any existing project defined sheet when used [nargs=0..1] [default: ""]',
-                                        "-D, --define-var         Overrides or adds project variables, can be used multiple times to declare multiple variables.",
+                                        "-h, --help                                       Shows help message and exits",
+                                        '-o, --output                                     Output file [nargs=0..1] [default: ""]',
+                                        '-l, --layers                                     Comma separated list of untranslated layer names to include such as F.Cu,B.Cu [nargs=0..1] [default: ""]',
+                                        '--drawing-sheet                                  Path to drawing sheet, this overrides any existing project defined sheet when used [nargs=0..1] [default: ""]',
+                                        "-D, --define-var                                 Overrides or adds project variables, can be used multiple times to declare multiple variables.",
                                         "Use in the format of '--define-var key=value' or '-D key=value' [nargs=0..1] [default: {}]",
-                                        "-m, --mirror             Mirror the board (useful for trying to show bottom layers)",
-                                        '-t, --theme              Color theme to use (will default to PCB editor settings) [nargs=0..1] [default: ""]',
-                                        "-n, --negative           Plot as negative (useful for directly etching from the export)",
-                                        "--black-and-white        Black and white only",
-                                        "--page-size-mode         Set page sizing mode (0 = page with frame and title block, 1 = current page size, 2 = board area only) [nargs=0..1] [default: 0]",
-                                        "--exclude-drawing-sheet  No drawing sheet",
-                                        "--drill-shape-opt        Set pad/via drill shape option (0 = no shape, 1 = small shape, 2 = actual shape) [nargs=0..1] [default: 2]",
+                                        "--subtract-soldermask                            Subtract soldermask from silkscreen",
+                                        "-m, --mirror                                     Mirror the board (useful for trying to show bottom layers)",
+                                        '-t, --theme                                      Color theme to use (will default to PCB editor settings) [nargs=0..1] [default: ""]',
+                                        "-n, --negative                                   Plot as negative (useful for directly etching from the export)",
+                                        "--black-and-white                                Black and white only",
+                                        "--sp, --sketch-pads-on-fab-layers                Draw pad outlines and their numbers on front and back fab layers",
+                                        "--hdnp, --hide-DNP-footprints-on-fab-layers      Don't plot text & graphics of DNP footprints on fab layers",
+                                        "--sdnp, --sketch-DNP-footprints-on-fab-layers    Plot graphics of DNP footprints in sketch mode on fab layers",
+                                        "--cdnp, --crossout-DNP-footprints-on-fab-layers  Plot an 'X' over the courtyard of DNP footprints on fab layers, and strikeout their reference designators",
+                                        "--page-size-mode                                 Set page sizing mode (0 = page with frame and title block, 1 = current page size, 2 = board area only) [nargs=0..1] [default: 0]",
+                                        "--fit-page-to-board                              Fit the page to the board",
+                                        "--exclude-drawing-sheet                          No drawing sheet",
+                                        "--drill-shape-opt                                Set pad/via drill shape option (0 = no shape, 1 = small shape, 2 = actual shape) [nargs=0..1] [default: 2]",
+                                        '--cl, --common-layers                            Layers to include on each plot, comma separated list of untranslated layer names to include such as F.Cu,B.Cu [nargs=0..1] [default: ""]',
+                                        "--mode-single                                    Generates a single file with the output arg path acting as the complete directory and filename path. COMMON_LAYER_LIST does not function in this mode. Instead LAYER_LIST controls all layers plotted.",
+                                        "--mode-multi                                     Generates one or more files with behavior similar to the KiCad GUI plotting. The given output path specifies a directory in which files may be output.",
+                                        "--plot-invisible-text                            Deprecated.  Has no effect.",
                                     ],
                                 ),
                             ],
@@ -711,7 +1111,7 @@ ParserL1.Command(
                                 ParserL1.Section(
                                     name="Usage",
                                     lines=[
-                                        "Usage: vrml [--help] [--output OUTPUT_FILE] [--define-var KEY=VALUE] [--force] [--user-origin VAR] [--units VAR] [--models-dir VAR] [--models-relative] INPUT_FILE"
+                                        "Usage: vrml [--help] [--output OUTPUT_FILE] [--define-var KEY=VALUE] [--force] [--no-unspecified] [--no-dnp] [--user-origin VAR] [--units VAR] [--models-dir VAR] [--models-relative] INPUT_FILE"
                                     ],
                                 ),
                                 ParserL1.Section(
@@ -733,6 +1133,8 @@ ParserL1.Command(
                                         "-D, --define-var   Overrides or adds project variables, can be used multiple times to declare multiple variables.",
                                         "Use in the format of '--define-var key=value' or '-D key=value' [nargs=0..1] [default: {}]",
                                         "-f, --force        Overwrite output file",
+                                        "--no-unspecified   Exclude 3D models for components with 'Unspecified' footprint type",
+                                        "--no-dnp           Exclude 3D models for components with 'Do not populate' attribute",
                                         '--user-origin      User-specified output origin ex. 1x1in, 1x1inch, 25.4x25.4mm (default unit mm) [nargs=0..1] [default: ""]',
                                         '--units            Output units; valid options: mm, m, in, tenths [nargs=0..1] [default: "in"]',
                                         '--models-dir       Name of folder to create and store 3d models in, if not specified or empty, the models will be embedded in main exported VRML file [nargs=0..1] [default: ""]',
@@ -742,7 +1144,111 @@ ParserL1.Command(
                             ],
                             subcommands=[],
                         ),
+                        ParserL1.Command(
+                            command="xao",
+                            sections=[
+                                ParserL1.Section(
+                                    name="Usage",
+                                    lines=[
+                                        "Usage: xao [--help] [--output OUTPUT_FILE] [--define-var KEY=VALUE] [--force] [--no-unspecified] [--no-dnp] [--grid-origin] [--drill-origin] [--subst-models] [--board-only] [--cut-vias-in-body] [--no-board-body] [--no-components] [--component-filter VAR] [--include-tracks] [--include-pads] [--include-zones] [--include-inner-copper] [--include-silkscreen] [--include-soldermask] [--fuse-shapes] [--fill-all-vias] [--min-distance MIN_DIST] [--net-filter VAR] [--user-origin VAR] INPUT_FILE"
+                                    ],
+                                ),
+                                ParserL1.Section(
+                                    name="Export XAO", lines=["Export XAO"]
+                                ),
+                                ParserL1.Section(
+                                    name="Positional arguments",
+                                    lines=[
+                                        "Positional arguments:",
+                                        "INPUT_FILE              Input file",
+                                    ],
+                                ),
+                                ParserL1.Section(
+                                    name="Optional arguments",
+                                    lines=[
+                                        "Optional arguments:",
+                                        "-h, --help              Shows help message and exits",
+                                        '-o, --output            Output file [nargs=0..1] [default: ""]',
+                                        "-D, --define-var        Overrides or adds project variables, can be used multiple times to declare multiple variables.",
+                                        "Use in the format of '--define-var key=value' or '-D key=value' [nargs=0..1] [default: {}]",
+                                        "-f, --force             Overwrite output file",
+                                        "--no-unspecified        Exclude 3D models for components with 'Unspecified' footprint type",
+                                        "--no-dnp                Exclude 3D models for components with 'Do not populate' attribute",
+                                        "--grid-origin           Use Grid Origin for output origin",
+                                        "--drill-origin          Use Drill Origin for output origin",
+                                        "--subst-models          Substitute STEP or IGS models with the same name in place of VRML models",
+                                        "--board-only            Only generate a board with no components",
+                                        "--cut-vias-in-body      Cut via holes in board body even if conductor layers are not exported.",
+                                        "--no-board-body         Exclude board body",
+                                        "--no-components         Exclude 3D models for components",
+                                        '--component-filter      Only include component 3D models matching this list of reference designators (comma-separated, wildcards supported) [nargs=0..1] [default: ""]',
+                                        "--include-tracks        Export tracks and vias",
+                                        "--include-pads          Export pads",
+                                        "--include-zones         Export zones",
+                                        "--include-inner-copper  Export elements on inner copper layers",
+                                        "--include-silkscreen    Export silkscreen graphics as a set of flat faces",
+                                        "--include-soldermask    Export soldermask layers as a set of flat faces",
+                                        "--fuse-shapes           Fuse overlapping geometry together",
+                                        "--fill-all-vias         Don't cut via holes in conductor layers.",
+                                        '--min-distance          Minimum distance between points to treat them as separate ones [nargs=0..1] [default: "0.01mm"]',
+                                        '--net-filter            Only include copper items belonging to nets matching this wildcard [nargs=0..1] [default: ""]',
+                                        '--user-origin           User-specified output origin ex. 1x1in, 1x1inch, 25.4x25.4mm (default unit mm) [nargs=0..1] [default: ""]',
+                                    ],
+                                ),
+                            ],
+                            subcommands=[],
+                        ),
                     ],
+                ),
+                ParserL1.Command(
+                    command="render",
+                    sections=[
+                        ParserL1.Section(
+                            name="Usage",
+                            lines=[
+                                "Usage: render [--help] [--output OUTPUT_FILE] [--define-var KEY=VALUE] [--width WIDTH] [--height HEIGHT] [--side SIDE] [--background BG] [--quality QUALITY] [--preset PRESET] [--floor] [--perspective] [--zoom ZOOM] [--pan VECTOR] [--pivot PIVOT] [--rotate ANGLES] [--light-top COLOR] [--light-bottom COLOR] [--light-side COLOR] [--light-camera COLOR] [--light-side-elevation ANGLE] INPUT_FILE"
+                            ],
+                        ),
+                        ParserL1.Section(
+                            name="Renders the PCB in 3D view to PNG or JPEG image",
+                            lines=["Renders the PCB in 3D view to PNG or JPEG image"],
+                        ),
+                        ParserL1.Section(
+                            name="Positional arguments",
+                            lines=[
+                                "Positional arguments:",
+                                "INPUT_FILE              Input file",
+                            ],
+                        ),
+                        ParserL1.Section(
+                            name="Optional arguments",
+                            lines=[
+                                "Optional arguments:",
+                                "-h, --help              Shows help message and exits",
+                                '-o, --output            Output file [nargs=0..1] [default: ""]',
+                                "-D, --define-var        Overrides or adds project variables, can be used multiple times to declare multiple variables.",
+                                "Use in the format of '--define-var key=value' or '-D key=value' [nargs=0..1] [default: {}]",
+                                "-w, --width             Image width [nargs=0..1] [default: 1600]",
+                                "-h, --height            Image height [nargs=0..1] [default: 900]",
+                                '--side                  Render from side. Options: top, bottom, left, right, front, back [nargs=0..1] [default: "top"]',
+                                '--background            Image background. Options: default, transparent, opaque. Default: transparent for PNG, opaque for JPEG [nargs=0..1] [default: ""]',
+                                '--quality               Render quality. Options: basic, high, user [nargs=0..1] [default: "basic"]',
+                                '--preset                Color preset. Options: follow_pcb_editor, follow_plot_settings, legacy_preset_flag, ... [nargs=0..1] [default: "follow_plot_settings"]',
+                                "--floor                 Enables floor, shadows and post-processing, even if disabled in quality preset",
+                                "--perspective           Use perspective projection instead of orthogonal",
+                                "--zoom                  Camera zoom [nargs=0..1] [default: 1]",
+                                "--pan                   Pan camera, format 'X,Y,Z' e.g.: '3,0,0' [nargs=0..1] [default: \"\"]",
+                                "--pivot                 Set pivot point relative to the board center in centimeters, format 'X,Y,Z' e.g.: '-10,2,0' [nargs=0..1] [default: \"\"]",
+                                "--rotate                Rotate board, format 'X,Y,Z' e.g.: '-45,0,45' for isometric view [nargs=0..1] [default: \"\"]",
+                                "--light-top             Top light intensity, format 'R,G,B' or a single number, range: 0-1 [nargs=0..1] [default: \"\"]",
+                                "--light-bottom          Bottom light intensity, format 'R,G,B' or a single number, range: 0-1 [nargs=0..1] [default: \"\"]",
+                                "--light-side            Side lights intensity, format 'R,G,B' or a single number, range: 0-1 [nargs=0..1] [default: \"\"]",
+                                "--light-camera          Camera light intensity, format 'R,G,B' or a single number, range: 0-1 [nargs=0..1] [default: \"\"]",
+                                "--light-side-elevation  Side lights elevation angle in degrees, range: 0-90 [nargs=0..1] [default: 60]",
+                            ],
+                        ),
+                    ],
+                    subcommands=[],
                 ),
             ],
         ),
@@ -854,7 +1360,7 @@ ParserL1.Command(
                                 ParserL1.Section(
                                     name="Usage",
                                     lines=[
-                                        "Usage: bom [--help] [--output OUTPUT_FILE] [--preset PRESET] [--format-preset FMT_PRESET] [--fields FIELDS] [--labels LABELS] [--group-by GROUP_BY] [--sort-field SORT_BY] [--sort-asc] [--filter FILTER] [--exclude-dnp] [--field-delimiter FIELD_DELIM] [--string-delimiter STR_DELIM] [--ref-delimiter REF_DELIM] [--ref-range-delimiter REF_RANGE_DELIM] [--keep-tabs] [--keep-line-breaks] INPUT_FILE"
+                                        "Usage: bom [--help] [--output OUTPUT_FILE] [--preset PRESET] [--format-preset FMT_PRESET] [--fields FIELDS] [--labels LABELS] [--group-by GROUP_BY] [--sort-field SORT_BY] [--sort-asc] [--filter FILTER] [--exclude-dnp] [--include-excluded-from-bom] [--field-delimiter FIELD_DELIM] [--string-delimiter STR_DELIM] [--ref-delimiter REF_DELIM] [--ref-range-delimiter REF_RANGE_DELIM] [--keep-tabs] [--keep-line-breaks] INPUT_FILE"
                                     ],
                                 ),
                                 ParserL1.Section(
@@ -865,30 +1371,31 @@ ParserL1.Command(
                                     name="Positional arguments",
                                     lines=[
                                         "Positional arguments:",
-                                        "INPUT_FILE             Input file",
+                                        "INPUT_FILE                   Input file",
                                     ],
                                 ),
                                 ParserL1.Section(
                                     name="Optional arguments",
                                     lines=[
                                         "Optional arguments:",
-                                        "-h, --help             Shows help message and exits",
-                                        '-o, --output           Output file [nargs=0..1] [default: ""]',
-                                        '--preset               Use a named BOM preset setting from the schematic, e.g. "Grouped By Value". [nargs=0..1] [default: ""]',
-                                        '--format-preset        Use a named BOM format preset setting from the schematic, e.g. CSV. [nargs=0..1] [default: ""]',
-                                        '--fields               An ordered list of fields to export. See documentation for special substitutions. [nargs=0..1] [default: "Reference,Value,Footprint,${QUANTITY},${DNP}"]',
-                                        '--labels               An ordered list of labels to apply the exported fields. [nargs=0..1] [default: "Refs,Value,Footprint,Qty,DNP"]',
-                                        '--group-by             Fields to group references by when field values match. [nargs=0..1] [default: ""]',
-                                        '--sort-field           Field name to sort by. [nargs=0..1] [default: "Reference"]',
-                                        "--sort-asc             Sort ascending (true) or descending (false).",
-                                        '--filter               Filter string to remove output lines. [nargs=0..1] [default: ""]',
-                                        "--exclude-dnp          Exclude symbols marked Do-Not-Populate.",
-                                        '--field-delimiter      Separator between output fields/columns. [nargs=0..1] [default: ","]',
-                                        '--string-delimiter     Character to surround fields with. [nargs=0..1] [default: """]',
-                                        '--ref-delimiter        Character to place between individual references. [nargs=0..1] [default: ","]',
-                                        '--ref-range-delimiter  Character to place in ranges of references. Leave blank for no ranges. [nargs=0..1] [default: "-"]',
-                                        "--keep-tabs            Keep tab characters from input fields. Stripped by default.",
-                                        "--keep-line-breaks     Keep line break characters from input fields. Stripped by default.",
+                                        "-h, --help                   Shows help message and exits",
+                                        '-o, --output                 Output file [nargs=0..1] [default: ""]',
+                                        '--preset                     Use a named BOM preset setting from the schematic, e.g. "Grouped By Value". [nargs=0..1] [default: ""]',
+                                        '--format-preset              Use a named BOM format preset setting from the schematic, e.g. CSV. [nargs=0..1] [default: ""]',
+                                        '--fields                     An ordered list of fields to export. See documentation for special substitutions. [nargs=0..1] [default: "Reference,Value,Footprint,${QUANTITY},${DNP}"]',
+                                        '--labels                     An ordered list of labels to apply the exported fields. [nargs=0..1] [default: "Refs,Value,Footprint,Qty,DNP"]',
+                                        '--group-by                   Fields to group references by when field values match. [nargs=0..1] [default: ""]',
+                                        '--sort-field                 Field name to sort by. [nargs=0..1] [default: "Reference"]',
+                                        "--sort-asc                   Sort ascending (true) or descending (false).",
+                                        '--filter                     Filter string to remove output lines. [nargs=0..1] [default: ""]',
+                                        "--exclude-dnp                Exclude symbols marked Do-Not-Populate.",
+                                        "--include-excluded-from-bom  Include symbols marked 'Exclude from BOM'.",
+                                        '--field-delimiter            Separator between output fields/columns. [nargs=0..1] [default: ","]',
+                                        '--string-delimiter           Character to surround fields with. [nargs=0..1] [default: """]',
+                                        '--ref-delimiter              Character to place between individual references. [nargs=0..1] [default: ","]',
+                                        '--ref-range-delimiter        Character to place in ranges of references. Leave blank for no ranges. [nargs=0..1] [default: "-"]',
+                                        "--keep-tabs                  Keep tab characters from input fields. Stripped by default.",
+                                        "--keep-line-breaks           Keep line break characters from input fields. Stripped by default.",
                                     ],
                                 ),
                             ],
@@ -900,7 +1407,7 @@ ParserL1.Command(
                                 ParserL1.Section(
                                     name="Usage",
                                     lines=[
-                                        "Usage: dxf [--help] [--output OUTPUT_DIR] [--drawing-sheet SHEET_PATH] [--define-var KEY=VALUE] [--theme THEME_NAME] [--black-and-white] [--exclude-drawing-sheet] [--pages PAGE_LIST] INPUT_FILE"
+                                        "Usage: dxf [--help] [--output OUTPUT_DIR] [--drawing-sheet SHEET_PATH] [--define-var KEY=VALUE] [--theme THEME_NAME] [--black-and-white] [--exclude-drawing-sheet] [--default-font VAR] [--pages PAGE_LIST] INPUT_FILE"
                                     ],
                                 ),
                                 ParserL1.Section(
@@ -925,7 +1432,8 @@ ParserL1.Command(
                                         '-t, --theme                  Color theme to use (will default to schematic settings) [nargs=0..1] [default: ""]',
                                         "-b, --black-and-white        Black and white only",
                                         "-e, --exclude-drawing-sheet  No drawing sheet",
-                                        '-p, --pages                  List of page numbers separated by comma to print, blank or unspecified is equivalent to all pages [nargs=0..1] [default: ""]',
+                                        '--default-font               Default font name [nargs=0..1] [default: "KiCad Font"]',
+                                        '--pages                      List of page numbers separated by comma to print, blank or unspecified is equivalent to all pages [nargs=0..1] [default: ""]',
                                     ],
                                 ),
                             ],
@@ -937,7 +1445,7 @@ ParserL1.Command(
                                 ParserL1.Section(
                                     name="Usage",
                                     lines=[
-                                        "Usage: hpgl [--help] [--output OUTPUT_DIR] [--drawing-sheet SHEET_PATH] [--define-var KEY=VALUE] [--exclude-drawing-sheet] [--pages PAGE_LIST] [--pen-size PEN_SIZE] [--origin ORIGIN] INPUT_FILE"
+                                        "Usage: hpgl [--help] [--output OUTPUT_DIR] [--drawing-sheet SHEET_PATH] [--define-var KEY=VALUE] [--exclude-drawing-sheet] [--default-font VAR] [--pages PAGE_LIST] [--pen-size PEN_SIZE] [--origin ORIGIN] INPUT_FILE"
                                     ],
                                 ),
                                 ParserL1.Section(
@@ -960,7 +1468,8 @@ ParserL1.Command(
                                         "-D, --define-var             Overrides or adds project variables, can be used multiple times to declare multiple variables.",
                                         "Use in the format of '--define-var key=value' or '-D key=value' [nargs=0..1] [default: {}]",
                                         "-e, --exclude-drawing-sheet  No drawing sheet",
-                                        '-p, --pages                  List of page numbers separated by comma to print, blank or unspecified is equivalent to all pages [nargs=0..1] [default: ""]',
+                                        '--default-font               Default font name [nargs=0..1] [default: "KiCad Font"]',
+                                        '--pages                      List of page numbers separated by comma to print, blank or unspecified is equivalent to all pages [nargs=0..1] [default: ""]',
                                         "-p, --pen-size               Pen size [mm] [nargs=0..1] [default: 0.5]",
                                         "-r, --origin                 Origin and scale: 0 bottom left, 1 centered, 2 page fit, 3 content fit [nargs=0..1] [default: 1]",
                                     ],
@@ -993,7 +1502,7 @@ ParserL1.Command(
                                         "Optional arguments:",
                                         "-h, --help    Shows help message and exits",
                                         '-o, --output  Output file [nargs=0..1] [default: ""]',
-                                        '--format      Netlist output format, valid options: kicadsexpr, kicadxml, cadstar, orcadpcb2, spice, spicemodel [nargs=0..1] [default: "kicadsexpr"]',
+                                        '--format      Netlist output format, valid options: kicadsexpr, kicadxml, cadstar, orcadpcb2, spice, spicemodel, pads, allegro [nargs=0..1] [default: "kicadsexpr"]',
                                     ],
                                 ),
                             ],
@@ -1005,7 +1514,7 @@ ParserL1.Command(
                                 ParserL1.Section(
                                     name="Usage",
                                     lines=[
-                                        "Usage: pdf [--help] [--output OUTPUT_FILE] [--drawing-sheet SHEET_PATH] [--define-var KEY=VALUE] [--theme THEME_NAME] [--black-and-white] [--exclude-drawing-sheet] [--exclude-pdf-property-popups] [--no-background-color] [--pages PAGE_LIST] INPUT_FILE"
+                                        "Usage: pdf [--help] [--output OUTPUT_FILE] [--drawing-sheet SHEET_PATH] [--define-var KEY=VALUE] [--theme THEME_NAME] [--black-and-white] [--exclude-drawing-sheet] [--default-font VAR] [--exclude-pdf-property-popups] [--exclude-pdf-hierarchical-links] [--exclude-pdf-metadata] [--no-background-color] [--pages PAGE_LIST] INPUT_FILE"
                                     ],
                                 ),
                                 ParserL1.Section(
@@ -1015,24 +1524,27 @@ ParserL1.Command(
                                     name="Positional arguments",
                                     lines=[
                                         "Positional arguments:",
-                                        "INPUT_FILE                     Input file",
+                                        "INPUT_FILE                        Input file",
                                     ],
                                 ),
                                 ParserL1.Section(
                                     name="Optional arguments",
                                     lines=[
                                         "Optional arguments:",
-                                        "-h, --help                     Shows help message and exits",
-                                        '-o, --output                   Output file [nargs=0..1] [default: ""]',
-                                        '--drawing-sheet                Path to drawing sheet, this overrides any existing project defined sheet when used [nargs=0..1] [default: ""]',
-                                        "-D, --define-var               Overrides or adds project variables, can be used multiple times to declare multiple variables.",
+                                        "-h, --help                        Shows help message and exits",
+                                        '-o, --output                      Output file [nargs=0..1] [default: ""]',
+                                        '--drawing-sheet                   Path to drawing sheet, this overrides any existing project defined sheet when used [nargs=0..1] [default: ""]',
+                                        "-D, --define-var                  Overrides or adds project variables, can be used multiple times to declare multiple variables.",
                                         "Use in the format of '--define-var key=value' or '-D key=value' [nargs=0..1] [default: {}]",
-                                        '-t, --theme                    Color theme to use (will default to schematic settings) [nargs=0..1] [default: ""]',
-                                        "-b, --black-and-white          Black and white only",
-                                        "-e, --exclude-drawing-sheet    No drawing sheet",
-                                        "--exclude-pdf-property-popups  Do not generate property popups in PDF",
-                                        "-n, --no-background-color      Avoid setting a background color (regardless of theme)",
-                                        '-p, --pages                    List of page numbers separated by comma to print, blank or unspecified is equivalent to all pages [nargs=0..1] [default: ""]',
+                                        '-t, --theme                       Color theme to use (will default to schematic settings) [nargs=0..1] [default: ""]',
+                                        "-b, --black-and-white             Black and white only",
+                                        "-e, --exclude-drawing-sheet       No drawing sheet",
+                                        '--default-font                    Default font name [nargs=0..1] [default: "KiCad Font"]',
+                                        "--exclude-pdf-property-popups     Do not generate property popups in PDF",
+                                        "--exclude-pdf-hierarchical-links  Do not generate clickable links for hierarchical elements in PDF",
+                                        "--exclude-pdf-metadata            Do not generate PDF metadata from AUTHOR and SUBJECT variables",
+                                        "-n, --no-background-color         Avoid setting a background color (regardless of theme)",
+                                        '--pages                           List of page numbers separated by comma to print, blank or unspecified is equivalent to all pages [nargs=0..1] [default: ""]',
                                     ],
                                 ),
                             ],
@@ -1044,7 +1556,7 @@ ParserL1.Command(
                                 ParserL1.Section(
                                     name="Usage",
                                     lines=[
-                                        "Usage: ps [--help] [--output OUTPUT_DIR] [--drawing-sheet SHEET_PATH] [--define-var KEY=VALUE] [--theme THEME_NAME] [--black-and-white] [--exclude-drawing-sheet] [--no-background-color] [--pages PAGE_LIST] INPUT_FILE"
+                                        "Usage: ps [--help] [--output OUTPUT_DIR] [--drawing-sheet SHEET_PATH] [--define-var KEY=VALUE] [--theme THEME_NAME] [--black-and-white] [--exclude-drawing-sheet] [--default-font VAR] [--no-background-color] [--pages PAGE_LIST] INPUT_FILE"
                                     ],
                                 ),
                                 ParserL1.Section(name="Export PS", lines=["Export PS"]),
@@ -1067,8 +1579,9 @@ ParserL1.Command(
                                         '-t, --theme                  Color theme to use (will default to schematic settings) [nargs=0..1] [default: ""]',
                                         "-b, --black-and-white        Black and white only",
                                         "-e, --exclude-drawing-sheet  No drawing sheet",
+                                        '--default-font               Default font name [nargs=0..1] [default: "KiCad Font"]',
                                         "-n, --no-background-color    Avoid setting a background color (regardless of theme)",
-                                        '-p, --pages                  List of page numbers separated by comma to print, blank or unspecified is equivalent to all pages [nargs=0..1] [default: ""]',
+                                        '--pages                      List of page numbers separated by comma to print, blank or unspecified is equivalent to all pages [nargs=0..1] [default: ""]',
                                     ],
                                 ),
                             ],
@@ -1113,7 +1626,7 @@ ParserL1.Command(
                                 ParserL1.Section(
                                     name="Usage",
                                     lines=[
-                                        "Usage: svg [--help] [--output OUTPUT_DIR] [--drawing-sheet SHEET_PATH] [--define-var KEY=VALUE] [--theme THEME_NAME] [--black-and-white] [--exclude-drawing-sheet] [--no-background-color] [--pages PAGE_LIST] INPUT_FILE"
+                                        "Usage: svg [--help] [--output OUTPUT_DIR] [--drawing-sheet SHEET_PATH] [--define-var KEY=VALUE] [--theme THEME_NAME] [--black-and-white] [--exclude-drawing-sheet] [--default-font VAR] [--no-background-color] [--pages PAGE_LIST] INPUT_FILE"
                                     ],
                                 ),
                                 ParserL1.Section(
@@ -1138,8 +1651,9 @@ ParserL1.Command(
                                         '-t, --theme                  Color theme to use (will default to schematic settings) [nargs=0..1] [default: ""]',
                                         "-b, --black-and-white        Black and white only",
                                         "-e, --exclude-drawing-sheet  No drawing sheet",
+                                        '--default-font               Default font name [nargs=0..1] [default: "KiCad Font"]',
                                         "-n, --no-background-color    Avoid setting a background color (regardless of theme)",
-                                        '-p, --pages                  List of page numbers separated by comma to print, blank or unspecified is equivalent to all pages [nargs=0..1] [default: ""]',
+                                        '--pages                      List of page numbers separated by comma to print, blank or unspecified is equivalent to all pages [nargs=0..1] [default: ""]',
                                     ],
                                 ),
                             ],
