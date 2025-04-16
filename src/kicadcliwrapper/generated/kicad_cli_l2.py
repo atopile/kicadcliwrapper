@@ -98,6 +98,39 @@ kicad_cli_l2 = ParserL2.Command(
                                     default=False,
                                 ),
                                 ParserL2.Flag(
+                                    name="--sketch-pads-on-fab-layers",
+                                    commands=["--sp", "--sketch-pads-on-fab-layers"],
+                                    description="Draw pad outlines and their numbers on front and back fab layers",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--hide-DNP-footprints-on-fab-layers",
+                                    commands=[
+                                        "--hdnp",
+                                        "--hide-DNP-footprints-on-fab-layers",
+                                    ],
+                                    description="Don't plot text & graphics of DNP footprints on fab layers",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--sketch-DNP-footprints-on-fab-layers",
+                                    commands=[
+                                        "--sdnp",
+                                        "--sketch-DNP-footprints-on-fab-layers",
+                                    ],
+                                    description="Plot graphics of DNP footprints in sketch mode on fab layers",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--crossout-DNP-footprints-on-fab-layers",
+                                    commands=[
+                                        "--cdnp",
+                                        "--crossout-DNP-footprints-on-fab-layers",
+                                    ],
+                                    description="Plot an 'X' over the courtyard of DNP footprints on fab layers, and strikeout their reference designators",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
                                     name="--black-and-white",
                                     commands=["--black-and-white"],
                                     description="Black and white only",
@@ -141,6 +174,60 @@ kicad_cli_l2 = ParserL2.Command(
                     ],
                     subcommands=[],
                 ),
+            ],
+        ),
+        ParserL2.Command(
+            name="jobset",
+            description="Jobset",
+            args=[],
+            flags=[
+                ParserL2.Flag(
+                    name="--help",
+                    commands=["-h", "--help"],
+                    description="Shows help message and exits",
+                    default=False,
+                )
+            ],
+            subcommands=[
+                ParserL2.Command(
+                    name="run",
+                    description="Runs a jobset file",
+                    args=[
+                        ParserL2.Argument(
+                            name="INPUT_FILE",
+                            description="Input file",
+                            arg_description="INPUT_FILE",
+                            required=True,
+                        ),
+                        ParserL2.Argument(
+                            name="--file",
+                            description='Jobset file to be run [nargs=0..1] [default: ""]',
+                            arg_description="JOB_FILE",
+                            required=False,
+                        ),
+                        ParserL2.Argument(
+                            name="--output",
+                            description='Jobset file output to generate, leave blank for all outputs defined in the jobset [nargs=0..1] [default: ""]',
+                            arg_description="OUTPUT",
+                            required=False,
+                        ),
+                    ],
+                    flags=[
+                        ParserL2.Flag(
+                            name="--help",
+                            commands=["-h", "--help"],
+                            description="Shows help message and exits",
+                            default=False,
+                        ),
+                        ParserL2.Flag(
+                            name="--stop-on-error",
+                            commands=["--stop-on-error"],
+                            description="Stops processing jobs as they are executed sequentially on the first failure of a job",
+                            default=False,
+                        ),
+                    ],
+                    subcommands=[],
+                )
             ],
         ),
         ParserL2.Command(
@@ -256,6 +343,171 @@ kicad_cli_l2 = ParserL2.Command(
                         )
                     ],
                     subcommands=[
+                        ParserL2.Command(
+                            name="brep",
+                            description="Export BREP",
+                            args=[
+                                ParserL2.Argument(
+                                    name="INPUT_FILE",
+                                    description="Input file",
+                                    arg_description="INPUT_FILE",
+                                    required=True,
+                                ),
+                                ParserL2.Argument(
+                                    name="--output",
+                                    description='Output file [nargs=0..1] [default: ""]',
+                                    arg_description="OUTPUT_FILE",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--define-var",
+                                    description="Overrides or adds project variables, can be used multiple times to declare multiple variables.",
+                                    arg_description="KEY=VALUE",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--component-filter",
+                                    description='Only include component 3D models matching this list of reference designators (comma-separated, wildcards supported) [nargs=0..1] [default: ""]',
+                                    arg_description="VAR",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--min-distance",
+                                    description='Minimum distance between points to treat them as separate ones [nargs=0..1] [default: "0.01mm"]',
+                                    arg_description="MIN_DIST",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--net-filter",
+                                    description='Only include copper items belonging to nets matching this wildcard [nargs=0..1] [default: ""]',
+                                    arg_description="VAR",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--user-origin",
+                                    description='User-specified output origin ex. 1x1in, 1x1inch, 25.4x25.4mm (default unit mm) [nargs=0..1] [default: ""]',
+                                    arg_description="VAR",
+                                    required=False,
+                                ),
+                            ],
+                            flags=[
+                                ParserL2.Flag(
+                                    name="--help",
+                                    commands=["-h", "--help"],
+                                    description="Shows help message and exits",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--force",
+                                    commands=["-f", "--force"],
+                                    description="Overwrite output file",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--no-unspecified",
+                                    commands=["--no-unspecified"],
+                                    description="Exclude 3D models for components with 'Unspecified' footprint type",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--no-dnp",
+                                    commands=["--no-dnp"],
+                                    description="Exclude 3D models for components with 'Do not populate' attribute",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--grid-origin",
+                                    commands=["--grid-origin"],
+                                    description="Use Grid Origin for output origin",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--drill-origin",
+                                    commands=["--drill-origin"],
+                                    description="Use Drill Origin for output origin",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--subst-models",
+                                    commands=["--subst-models"],
+                                    description="Substitute STEP or IGS models with the same name in place of VRML models",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--board-only",
+                                    commands=["--board-only"],
+                                    description="Only generate a board with no components",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--cut-vias-in-body",
+                                    commands=["--cut-vias-in-body"],
+                                    description="Cut via holes in board body even if conductor layers are not exported.",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--no-board-body",
+                                    commands=["--no-board-body"],
+                                    description="Exclude board body",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--no-components",
+                                    commands=["--no-components"],
+                                    description="Exclude 3D models for components",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-tracks",
+                                    commands=["--include-tracks"],
+                                    description="Export tracks and vias",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-pads",
+                                    commands=["--include-pads"],
+                                    description="Export pads",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-zones",
+                                    commands=["--include-zones"],
+                                    description="Export zones",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-inner-copper",
+                                    commands=["--include-inner-copper"],
+                                    description="Export elements on inner copper layers",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-silkscreen",
+                                    commands=["--include-silkscreen"],
+                                    description="Export silkscreen graphics as a set of flat faces",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-soldermask",
+                                    commands=["--include-soldermask"],
+                                    description="Export soldermask layers as a set of flat faces",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--fuse-shapes",
+                                    commands=["--fuse-shapes"],
+                                    description="Fuse overlapping geometry together",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--fill-all-vias",
+                                    commands=["--fill-all-vias"],
+                                    description="Don't cut via holes in conductor layers.",
+                                    default=False,
+                                ),
+                            ],
+                            subcommands=[],
+                        ),
                         ParserL2.Command(
                             name="drill",
                             description="Generate Drill Files",
@@ -389,6 +641,18 @@ kicad_cli_l2 = ParserL2.Command(
                                     arg_description="UNITS",
                                     required=False,
                                 ),
+                                ParserL2.Argument(
+                                    name="--drill-shape-opt",
+                                    description="Set pad/via drill shape option (0 = no shape, 1 = small shape, 2 = actual shape) [nargs=0..1] [default: 2]",
+                                    arg_description="VAR",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--common-layers",
+                                    description='Layers to include on each plot, comma separated list of untranslated layer names to include such as F.Cu,B.Cu [nargs=0..1] [default: ""]',
+                                    arg_description="COMMON_LAYER_LIST",
+                                    required=False,
+                                ),
                             ],
                             flags=[
                                 ParserL2.Flag(
@@ -410,15 +674,141 @@ kicad_cli_l2 = ParserL2.Command(
                                     default=False,
                                 ),
                                 ParserL2.Flag(
+                                    name="--sketch-pads-on-fab-layers",
+                                    commands=["--sp", "--sketch-pads-on-fab-layers"],
+                                    description="Draw pad outlines and their numbers on front and back fab layers",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--hide-DNP-footprints-on-fab-layers",
+                                    commands=[
+                                        "--hdnp",
+                                        "--hide-DNP-footprints-on-fab-layers",
+                                    ],
+                                    description="Don't plot text & graphics of DNP footprints on fab layers",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--sketch-DNP-footprints-on-fab-layers",
+                                    commands=[
+                                        "--sdnp",
+                                        "--sketch-DNP-footprints-on-fab-layers",
+                                    ],
+                                    description="Plot graphics of DNP footprints in sketch mode on fab layers",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--crossout-DNP-footprints-on-fab-layers",
+                                    commands=[
+                                        "--cdnp",
+                                        "--crossout-DNP-footprints-on-fab-layers",
+                                    ],
+                                    description="Plot an 'X' over the courtyard of DNP footprints on fab layers, and strikeout their reference designators",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--subtract-soldermask",
+                                    commands=["--subtract-soldermask"],
+                                    description="Subtract soldermask from silkscreen",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
                                     name="--use-contours",
                                     commands=["--uc", "--use-contours"],
                                     description="Plot graphic items using their contours",
                                     default=False,
                                 ),
                                 ParserL2.Flag(
+                                    name="--use-drill-origin",
+                                    commands=["--udo", "--use-drill-origin"],
+                                    description="Plot using the drill/place file origin",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
                                     name="--include-border-title",
                                     commands=["--ibt", "--include-border-title"],
                                     description="Include the border and title block",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--mode-single",
+                                    commands=["--mode-single"],
+                                    description="Generates a single file with the output arg path acting as the complete directory and filename path. COMMON_LAYER_LIST does not function in this mode. Instead LAYER_LIST controls all layers plotted.",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--mode-multi",
+                                    commands=["--mode-multi"],
+                                    description="Generates one or more files with behavior similar to the KiCad GUI plotting. The given output path specifies a directory in which files may be output.",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--plot-invisible-text",
+                                    commands=["--plot-invisible-text"],
+                                    description="Deprecated.  Has no effect.",
+                                    default=False,
+                                ),
+                            ],
+                            subcommands=[],
+                        ),
+                        ParserL2.Command(
+                            name="gencad",
+                            description="Generate Gencad from a list of layers",
+                            args=[
+                                ParserL2.Argument(
+                                    name="INPUT_FILE",
+                                    description="Input file",
+                                    arg_description="INPUT_FILE",
+                                    required=True,
+                                ),
+                                ParserL2.Argument(
+                                    name="--output",
+                                    description='Output file [nargs=0..1] [default: ""]',
+                                    arg_description="OUTPUT_FILE",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--define-var",
+                                    description="Overrides or adds project variables, can be used multiple times to declare multiple variables.",
+                                    arg_description="KEY=VALUE",
+                                    required=False,
+                                ),
+                            ],
+                            flags=[
+                                ParserL2.Flag(
+                                    name="--help",
+                                    commands=["-h", "--help"],
+                                    description="Shows help message and exits",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--flip-bottom-pads",
+                                    commands=["-f", "--flip-bottom-pads"],
+                                    description="Flip bottom footprint padstacks",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--unique-pins",
+                                    commands=["--unique-pins"],
+                                    description="Generate unique pin names",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--unique-footprints",
+                                    commands=["--unique-footprints"],
+                                    description="Generate a new shape for each footprint instance (do not reuse shapes)",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--use-drill-origin",
+                                    commands=["--use-drill-origin"],
+                                    description="Use drill/place file origin as origin",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--store-origin-coord",
+                                    commands=["--store-origin-coord"],
+                                    description="Save the origin coordinates in the file",
                                     default=False,
                                 ),
                             ],
@@ -459,6 +849,12 @@ kicad_cli_l2 = ParserL2.Command(
                                     required=False,
                                 ),
                                 ParserL2.Argument(
+                                    name="--common-layers",
+                                    description='Layers to include on each plot, comma separated list of untranslated layer names to include such as F.Cu,B.Cu [nargs=0..1] [default: ""]',
+                                    arg_description="COMMON_LAYER_LIST",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
                                     name="--precision",
                                     description="Precision of Gerber coordinates, valid options: 5 or 6 [nargs=0..1] [default: 6]",
                                     arg_description="PRECISION",
@@ -488,6 +884,39 @@ kicad_cli_l2 = ParserL2.Command(
                                     name="--include-border-title",
                                     commands=["--ibt", "--include-border-title"],
                                     description="Include the border and title block",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--sketch-pads-on-fab-layers",
+                                    commands=["--sp", "--sketch-pads-on-fab-layers"],
+                                    description="Draw pad outlines and their numbers on front and back fab layers",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--hide-DNP-footprints-on-fab-layers",
+                                    commands=[
+                                        "--hdnp",
+                                        "--hide-DNP-footprints-on-fab-layers",
+                                    ],
+                                    description="Don't plot text & graphics of DNP footprints on fab layers",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--sketch-DNP-footprints-on-fab-layers",
+                                    commands=[
+                                        "--sdnp",
+                                        "--sketch-DNP-footprints-on-fab-layers",
+                                    ],
+                                    description="Plot graphics of DNP footprints in sketch mode on fab layers",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--crossout-DNP-footprints-on-fab-layers",
+                                    commands=[
+                                        "--cdnp",
+                                        "--crossout-DNP-footprints-on-fab-layers",
+                                    ],
+                                    description="Plot an 'X' over the courtyard of DNP footprints on fab layers, and strikeout their reference designators",
                                     default=False,
                                 ),
                                 ParserL2.Flag(
@@ -526,6 +955,12 @@ kicad_cli_l2 = ParserL2.Command(
                                     description="Use KiCad Gerber file extension",
                                     default=False,
                                 ),
+                                ParserL2.Flag(
+                                    name="--plot-invisible-text",
+                                    commands=["--plot-invisible-text"],
+                                    description="Deprecated.  Has no effect.",
+                                    default=False,
+                                ),
                             ],
                             subcommands=[],
                         ),
@@ -561,6 +996,12 @@ kicad_cli_l2 = ParserL2.Command(
                                     name="--define-var",
                                     description="Overrides or adds project variables, can be used multiple times to declare multiple variables.",
                                     arg_description="KEY=VALUE",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--common-layers",
+                                    description='Layers to include on each plot, comma separated list of untranslated layer names to include such as F.Cu,B.Cu [nargs=0..1] [default: ""]',
+                                    arg_description="COMMON_LAYER_LIST",
                                     required=False,
                                 ),
                                 ParserL2.Argument(
@@ -602,6 +1043,39 @@ kicad_cli_l2 = ParserL2.Command(
                                     default=False,
                                 ),
                                 ParserL2.Flag(
+                                    name="--sketch-pads-on-fab-layers",
+                                    commands=["--sp", "--sketch-pads-on-fab-layers"],
+                                    description="Draw pad outlines and their numbers on front and back fab layers",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--hide-DNP-footprints-on-fab-layers",
+                                    commands=[
+                                        "--hdnp",
+                                        "--hide-DNP-footprints-on-fab-layers",
+                                    ],
+                                    description="Don't plot text & graphics of DNP footprints on fab layers",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--sketch-DNP-footprints-on-fab-layers",
+                                    commands=[
+                                        "--sdnp",
+                                        "--sketch-DNP-footprints-on-fab-layers",
+                                    ],
+                                    description="Plot graphics of DNP footprints in sketch mode on fab layers",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--crossout-DNP-footprints-on-fab-layers",
+                                    commands=[
+                                        "--cdnp",
+                                        "--crossout-DNP-footprints-on-fab-layers",
+                                    ],
+                                    description="Plot an 'X' over the courtyard of DNP footprints on fab layers, and strikeout their reference designators",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
                                     name="--no-x2",
                                     commands=["--no-x2"],
                                     description="Do not use the extended X2 format",
@@ -638,6 +1112,12 @@ kicad_cli_l2 = ParserL2.Command(
                                     default=False,
                                 ),
                                 ParserL2.Flag(
+                                    name="--plot-invisible-text",
+                                    commands=["--plot-invisible-text"],
+                                    description="Deprecated.  Has no effect.",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
                                     name="--board-plot-params",
                                     commands=["--board-plot-params"],
                                     description="Use the Gerber plot settings already configured in the board file",
@@ -669,9 +1149,21 @@ kicad_cli_l2 = ParserL2.Command(
                                     required=False,
                                 ),
                                 ParserL2.Argument(
+                                    name="--component-filter",
+                                    description='Only include component 3D models matching this list of reference designators (comma-separated, wildcards supported) [nargs=0..1] [default: ""]',
+                                    arg_description="VAR",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
                                     name="--min-distance",
                                     description='Minimum distance between points to treat them as separate ones [nargs=0..1] [default: "0.01mm"]',
                                     arg_description="MIN_DIST",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--net-filter",
+                                    description='Only include copper items belonging to nets matching this wildcard [nargs=0..1] [default: ""]',
+                                    arg_description="VAR",
                                     required=False,
                                 ),
                                 ParserL2.Argument(
@@ -695,18 +1187,6 @@ kicad_cli_l2 = ParserL2.Command(
                                     default=False,
                                 ),
                                 ParserL2.Flag(
-                                    name="--grid-origin",
-                                    commands=["--grid-origin"],
-                                    description="Use Grid Origin for output origin",
-                                    default=False,
-                                ),
-                                ParserL2.Flag(
-                                    name="--drill-origin",
-                                    commands=["--drill-origin"],
-                                    description="Use Drill Origin for output origin",
-                                    default=False,
-                                ),
-                                ParserL2.Flag(
                                     name="--no-unspecified",
                                     commands=["--no-unspecified"],
                                     description="Exclude 3D models for components with 'Unspecified' footprint type",
@@ -716,6 +1196,18 @@ kicad_cli_l2 = ParserL2.Command(
                                     name="--no-dnp",
                                     commands=["--no-dnp"],
                                     description="Exclude 3D models for components with 'Do not populate' attribute",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--grid-origin",
+                                    commands=["--grid-origin"],
+                                    description="Use Grid Origin for output origin",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--drill-origin",
+                                    commands=["--drill-origin"],
+                                    description="Use Drill Origin for output origin",
                                     default=False,
                                 ),
                                 ParserL2.Flag(
@@ -731,9 +1223,33 @@ kicad_cli_l2 = ParserL2.Command(
                                     default=False,
                                 ),
                                 ParserL2.Flag(
+                                    name="--cut-vias-in-body",
+                                    commands=["--cut-vias-in-body"],
+                                    description="Cut via holes in board body even if conductor layers are not exported.",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--no-board-body",
+                                    commands=["--no-board-body"],
+                                    description="Exclude board body",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--no-components",
+                                    commands=["--no-components"],
+                                    description="Exclude 3D models for components",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
                                     name="--include-tracks",
                                     commands=["--include-tracks"],
-                                    description="Export tracks",
+                                    description="Export tracks and vias",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-pads",
+                                    commands=["--include-pads"],
+                                    description="Export pads",
                                     default=False,
                                 ),
                                 ParserL2.Flag(
@@ -742,12 +1258,42 @@ kicad_cli_l2 = ParserL2.Command(
                                     description="Export zones",
                                     default=False,
                                 ),
+                                ParserL2.Flag(
+                                    name="--include-inner-copper",
+                                    commands=["--include-inner-copper"],
+                                    description="Export elements on inner copper layers",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-silkscreen",
+                                    commands=["--include-silkscreen"],
+                                    description="Export silkscreen graphics as a set of flat faces",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-soldermask",
+                                    commands=["--include-soldermask"],
+                                    description="Export soldermask layers as a set of flat faces",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--fuse-shapes",
+                                    commands=["--fuse-shapes"],
+                                    description="Fuse overlapping geometry together",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--fill-all-vias",
+                                    commands=["--fill-all-vias"],
+                                    description="Don't cut via holes in conductor layers.",
+                                    default=False,
+                                ),
                             ],
                             subcommands=[],
                         ),
                         ParserL2.Command(
                             name="ipc2581",
-                            description="Export the PCB in IPC2581 format",
+                            description="Export the PCB in IPC-2581 format",
                             args=[
                                 ParserL2.Argument(
                                     name="INPUT_FILE",
@@ -775,13 +1321,13 @@ kicad_cli_l2 = ParserL2.Command(
                                 ),
                                 ParserL2.Argument(
                                     name="--precision",
-                                    description="Precision [nargs=0..1] [default: 3]",
+                                    description="Precision [nargs=0..1] [default: 6]",
                                     arg_description="PRECISION",
                                     required=False,
                                 ),
                                 ParserL2.Argument(
                                     name="--version",
-                                    description='IPC2581 standard version [nargs=0..1] [default: "C"]',
+                                    description='IPC-2581 standard version [nargs=0..1] [default: "C"]',
                                     arg_description="VAR",
                                     required=False,
                                 ),
@@ -839,6 +1385,90 @@ kicad_cli_l2 = ParserL2.Command(
                             subcommands=[],
                         ),
                         ParserL2.Command(
+                            name="ipcd356",
+                            description="Generate IPC-D-356 netlist file",
+                            args=[
+                                ParserL2.Argument(
+                                    name="INPUT_FILE",
+                                    description="Input file",
+                                    arg_description="INPUT_FILE",
+                                    required=True,
+                                ),
+                                ParserL2.Argument(
+                                    name="--output",
+                                    description='Output file [nargs=0..1] [default: ""]',
+                                    arg_description="OUTPUT_FILE",
+                                    required=False,
+                                ),
+                            ],
+                            flags=[
+                                ParserL2.Flag(
+                                    name="--help",
+                                    commands=["-h", "--help"],
+                                    description="Shows help message and exits",
+                                    default=False,
+                                )
+                            ],
+                            subcommands=[],
+                        ),
+                        ParserL2.Command(
+                            name="odb",
+                            description="Export the PCB in ODB++ format",
+                            args=[
+                                ParserL2.Argument(
+                                    name="INPUT_FILE",
+                                    description="Input file",
+                                    arg_description="INPUT_FILE",
+                                    required=True,
+                                ),
+                                ParserL2.Argument(
+                                    name="--output",
+                                    description='Output file [nargs=0..1] [default: ""]',
+                                    arg_description="OUTPUT_FILE",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--drawing-sheet",
+                                    description='Path to drawing sheet, this overrides any existing project defined sheet when used [nargs=0..1] [default: ""]',
+                                    arg_description="SHEET_PATH",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--define-var",
+                                    description="Overrides or adds project variables, can be used multiple times to declare multiple variables.",
+                                    arg_description="KEY=VALUE",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--precision",
+                                    description="Precision [nargs=0..1] [default: 2]",
+                                    arg_description="PRECISION",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--compression",
+                                    description='Compression mode [nargs=0..1] [default: "zip"]',
+                                    arg_description="VAR",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--units",
+                                    description='Units [nargs=0..1] [default: "mm"]',
+                                    arg_description="VAR",
+                                    required=False,
+                                ),
+                            ],
+                            flags=[
+                                ParserL2.Flag(
+                                    name="--help",
+                                    commands=["-h", "--help"],
+                                    description="Shows help message and exits",
+                                    default=False,
+                                )
+                            ],
+                            subcommands=[],
+                        ),
+                        ParserL2.Command(
                             name="pdf",
                             description="Generate PDF from a list of layers",
                             args=[
@@ -884,6 +1514,12 @@ kicad_cli_l2 = ParserL2.Command(
                                     arg_description="VAR",
                                     required=False,
                                 ),
+                                ParserL2.Argument(
+                                    name="--common-layers",
+                                    description='Layers to include on each plot, comma separated list of untranslated layer names to include such as F.Cu,B.Cu [nargs=0..1] [default: ""]',
+                                    arg_description="COMMON_LAYER_LIST",
+                                    required=False,
+                                ),
                             ],
                             flags=[
                                 ParserL2.Flag(
@@ -917,6 +1553,45 @@ kicad_cli_l2 = ParserL2.Command(
                                     default=False,
                                 ),
                                 ParserL2.Flag(
+                                    name="--subtract-soldermask",
+                                    commands=["--subtract-soldermask"],
+                                    description="Subtract soldermask from silkscreen",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--sketch-pads-on-fab-layers",
+                                    commands=["--sp", "--sketch-pads-on-fab-layers"],
+                                    description="Draw pad outlines and their numbers on front and back fab layers",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--hide-DNP-footprints-on-fab-layers",
+                                    commands=[
+                                        "--hdnp",
+                                        "--hide-DNP-footprints-on-fab-layers",
+                                    ],
+                                    description="Don't plot text & graphics of DNP footprints on fab layers",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--sketch-DNP-footprints-on-fab-layers",
+                                    commands=[
+                                        "--sdnp",
+                                        "--sketch-DNP-footprints-on-fab-layers",
+                                    ],
+                                    description="Plot graphics of DNP footprints in sketch mode on fab layers",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--crossout-DNP-footprints-on-fab-layers",
+                                    commands=[
+                                        "--cdnp",
+                                        "--crossout-DNP-footprints-on-fab-layers",
+                                    ],
+                                    description="Plot an 'X' over the courtyard of DNP footprints on fab layers, and strikeout their reference designators",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
                                     name="--negative",
                                     commands=["-n", "--negative"],
                                     description="Plot as negative (useful for directly etching from the export)",
@@ -926,6 +1601,195 @@ kicad_cli_l2 = ParserL2.Command(
                                     name="--black-and-white",
                                     commands=["--black-and-white"],
                                     description="Black and white only",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--plot-invisible-text",
+                                    commands=["--plot-invisible-text"],
+                                    description="Deprecated.  Has no effect.",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--mode-single",
+                                    commands=["--mode-single"],
+                                    description="Generates a single file with the output arg path acting as the complete directory and filename path. COMMON_LAYER_LIST does not function in this mode. Instead LAYER_LIST controls all layers plotted.",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--mode-separate",
+                                    commands=["--mode-separate"],
+                                    description="Plot the layers to individual PDF files",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--mode-multipage",
+                                    commands=["--mode-multipage"],
+                                    description="Plot the layers to a single PDF file with multiple pages",
+                                    default=False,
+                                ),
+                            ],
+                            subcommands=[],
+                        ),
+                        ParserL2.Command(
+                            name="ply",
+                            description="Export PLY",
+                            args=[
+                                ParserL2.Argument(
+                                    name="INPUT_FILE",
+                                    description="Input file",
+                                    arg_description="INPUT_FILE",
+                                    required=True,
+                                ),
+                                ParserL2.Argument(
+                                    name="--output",
+                                    description='Output file [nargs=0..1] [default: ""]',
+                                    arg_description="OUTPUT_FILE",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--define-var",
+                                    description="Overrides or adds project variables, can be used multiple times to declare multiple variables.",
+                                    arg_description="KEY=VALUE",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--component-filter",
+                                    description='Only include component 3D models matching this list of reference designators (comma-separated, wildcards supported) [nargs=0..1] [default: ""]',
+                                    arg_description="VAR",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--min-distance",
+                                    description='Minimum distance between points to treat them as separate ones [nargs=0..1] [default: "0.01mm"]',
+                                    arg_description="MIN_DIST",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--net-filter",
+                                    description='Only include copper items belonging to nets matching this wildcard [nargs=0..1] [default: ""]',
+                                    arg_description="VAR",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--user-origin",
+                                    description='User-specified output origin ex. 1x1in, 1x1inch, 25.4x25.4mm (default unit mm) [nargs=0..1] [default: ""]',
+                                    arg_description="VAR",
+                                    required=False,
+                                ),
+                            ],
+                            flags=[
+                                ParserL2.Flag(
+                                    name="--help",
+                                    commands=["-h", "--help"],
+                                    description="Shows help message and exits",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--force",
+                                    commands=["-f", "--force"],
+                                    description="Overwrite output file",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--no-unspecified",
+                                    commands=["--no-unspecified"],
+                                    description="Exclude 3D models for components with 'Unspecified' footprint type",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--no-dnp",
+                                    commands=["--no-dnp"],
+                                    description="Exclude 3D models for components with 'Do not populate' attribute",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--grid-origin",
+                                    commands=["--grid-origin"],
+                                    description="Use Grid Origin for output origin",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--drill-origin",
+                                    commands=["--drill-origin"],
+                                    description="Use Drill Origin for output origin",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--subst-models",
+                                    commands=["--subst-models"],
+                                    description="Substitute STEP or IGS models with the same name in place of VRML models",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--board-only",
+                                    commands=["--board-only"],
+                                    description="Only generate a board with no components",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--cut-vias-in-body",
+                                    commands=["--cut-vias-in-body"],
+                                    description="Cut via holes in board body even if conductor layers are not exported.",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--no-board-body",
+                                    commands=["--no-board-body"],
+                                    description="Exclude board body",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--no-components",
+                                    commands=["--no-components"],
+                                    description="Exclude 3D models for components",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-tracks",
+                                    commands=["--include-tracks"],
+                                    description="Export tracks and vias",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-pads",
+                                    commands=["--include-pads"],
+                                    description="Export pads",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-zones",
+                                    commands=["--include-zones"],
+                                    description="Export zones",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-inner-copper",
+                                    commands=["--include-inner-copper"],
+                                    description="Export elements on inner copper layers",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-silkscreen",
+                                    commands=["--include-silkscreen"],
+                                    description="Export silkscreen graphics as a set of flat faces",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-soldermask",
+                                    commands=["--include-soldermask"],
+                                    description="Export soldermask layers as a set of flat faces",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--fuse-shapes",
+                                    commands=["--fuse-shapes"],
+                                    description="Fuse overlapping geometry together",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--fill-all-vias",
+                                    commands=["--fill-all-vias"],
+                                    description="Don't cut via holes in conductor layers.",
                                     default=False,
                                 ),
                             ],
@@ -949,7 +1813,7 @@ kicad_cli_l2 = ParserL2.Command(
                                 ),
                                 ParserL2.Argument(
                                     name="--side",
-                                    description='Valid options: front,back,both. Gerber format only supports "both". [nargs=0..1] [default: "both"]',
+                                    description='Valid options: front,back,both. Gerber format only supports "front" or "back". [nargs=0..1] [default: "both"]',
                                     arg_description="VAR",
                                     required=False,
                                 ),
@@ -1035,9 +1899,21 @@ kicad_cli_l2 = ParserL2.Command(
                                     required=False,
                                 ),
                                 ParserL2.Argument(
+                                    name="--component-filter",
+                                    description='Only include component 3D models matching this list of reference designators (comma-separated, wildcards supported) [nargs=0..1] [default: ""]',
+                                    arg_description="VAR",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
                                     name="--min-distance",
                                     description='Minimum distance between points to treat them as separate ones [nargs=0..1] [default: "0.01mm"]',
                                     arg_description="MIN_DIST",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--net-filter",
+                                    description='Only include copper items belonging to nets matching this wildcard [nargs=0..1] [default: ""]',
+                                    arg_description="VAR",
                                     required=False,
                                 ),
                                 ParserL2.Argument(
@@ -1061,18 +1937,6 @@ kicad_cli_l2 = ParserL2.Command(
                                     default=False,
                                 ),
                                 ParserL2.Flag(
-                                    name="--grid-origin",
-                                    commands=["--grid-origin"],
-                                    description="Use Grid Origin for output origin",
-                                    default=False,
-                                ),
-                                ParserL2.Flag(
-                                    name="--drill-origin",
-                                    commands=["--drill-origin"],
-                                    description="Use Drill Origin for output origin",
-                                    default=False,
-                                ),
-                                ParserL2.Flag(
                                     name="--no-unspecified",
                                     commands=["--no-unspecified"],
                                     description="Exclude 3D models for components with 'Unspecified' footprint type",
@@ -1082,6 +1946,18 @@ kicad_cli_l2 = ParserL2.Command(
                                     name="--no-dnp",
                                     commands=["--no-dnp"],
                                     description="Exclude 3D models for components with 'Do not populate' attribute",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--grid-origin",
+                                    commands=["--grid-origin"],
+                                    description="Use Grid Origin for output origin",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--drill-origin",
+                                    commands=["--drill-origin"],
+                                    description="Use Drill Origin for output origin",
                                     default=False,
                                 ),
                                 ParserL2.Flag(
@@ -1097,9 +1973,33 @@ kicad_cli_l2 = ParserL2.Command(
                                     default=False,
                                 ),
                                 ParserL2.Flag(
+                                    name="--cut-vias-in-body",
+                                    commands=["--cut-vias-in-body"],
+                                    description="Cut via holes in board body even if conductor layers are not exported.",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--no-board-body",
+                                    commands=["--no-board-body"],
+                                    description="Exclude board body",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--no-components",
+                                    commands=["--no-components"],
+                                    description="Exclude 3D models for components",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
                                     name="--include-tracks",
                                     commands=["--include-tracks"],
-                                    description="Export tracks",
+                                    description="Export tracks and vias",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-pads",
+                                    commands=["--include-pads"],
+                                    description="Export pads",
                                     default=False,
                                 ),
                                 ParserL2.Flag(
@@ -1109,9 +2009,204 @@ kicad_cli_l2 = ParserL2.Command(
                                     default=False,
                                 ),
                                 ParserL2.Flag(
+                                    name="--include-inner-copper",
+                                    commands=["--include-inner-copper"],
+                                    description="Export elements on inner copper layers",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-silkscreen",
+                                    commands=["--include-silkscreen"],
+                                    description="Export silkscreen graphics as a set of flat faces",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-soldermask",
+                                    commands=["--include-soldermask"],
+                                    description="Export soldermask layers as a set of flat faces",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--fuse-shapes",
+                                    commands=["--fuse-shapes"],
+                                    description="Fuse overlapping geometry together",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--fill-all-vias",
+                                    commands=["--fill-all-vias"],
+                                    description="Don't cut via holes in conductor layers.",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
                                     name="--no-optimize-step",
                                     commands=["--no-optimize-step"],
                                     description="Do not optimize STEP file (enables writing parametric curves)",
+                                    default=False,
+                                ),
+                            ],
+                            subcommands=[],
+                        ),
+                        ParserL2.Command(
+                            name="stl",
+                            description="Export STL",
+                            args=[
+                                ParserL2.Argument(
+                                    name="INPUT_FILE",
+                                    description="Input file",
+                                    arg_description="INPUT_FILE",
+                                    required=True,
+                                ),
+                                ParserL2.Argument(
+                                    name="--output",
+                                    description='Output file [nargs=0..1] [default: ""]',
+                                    arg_description="OUTPUT_FILE",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--define-var",
+                                    description="Overrides or adds project variables, can be used multiple times to declare multiple variables.",
+                                    arg_description="KEY=VALUE",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--component-filter",
+                                    description='Only include component 3D models matching this list of reference designators (comma-separated, wildcards supported) [nargs=0..1] [default: ""]',
+                                    arg_description="VAR",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--min-distance",
+                                    description='Minimum distance between points to treat them as separate ones [nargs=0..1] [default: "0.01mm"]',
+                                    arg_description="MIN_DIST",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--net-filter",
+                                    description='Only include copper items belonging to nets matching this wildcard [nargs=0..1] [default: ""]',
+                                    arg_description="VAR",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--user-origin",
+                                    description='User-specified output origin ex. 1x1in, 1x1inch, 25.4x25.4mm (default unit mm) [nargs=0..1] [default: ""]',
+                                    arg_description="VAR",
+                                    required=False,
+                                ),
+                            ],
+                            flags=[
+                                ParserL2.Flag(
+                                    name="--help",
+                                    commands=["-h", "--help"],
+                                    description="Shows help message and exits",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--force",
+                                    commands=["-f", "--force"],
+                                    description="Overwrite output file",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--no-unspecified",
+                                    commands=["--no-unspecified"],
+                                    description="Exclude 3D models for components with 'Unspecified' footprint type",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--no-dnp",
+                                    commands=["--no-dnp"],
+                                    description="Exclude 3D models for components with 'Do not populate' attribute",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--grid-origin",
+                                    commands=["--grid-origin"],
+                                    description="Use Grid Origin for output origin",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--drill-origin",
+                                    commands=["--drill-origin"],
+                                    description="Use Drill Origin for output origin",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--subst-models",
+                                    commands=["--subst-models"],
+                                    description="Substitute STEP or IGS models with the same name in place of VRML models",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--board-only",
+                                    commands=["--board-only"],
+                                    description="Only generate a board with no components",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--cut-vias-in-body",
+                                    commands=["--cut-vias-in-body"],
+                                    description="Cut via holes in board body even if conductor layers are not exported.",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--no-board-body",
+                                    commands=["--no-board-body"],
+                                    description="Exclude board body",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--no-components",
+                                    commands=["--no-components"],
+                                    description="Exclude 3D models for components",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-tracks",
+                                    commands=["--include-tracks"],
+                                    description="Export tracks and vias",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-pads",
+                                    commands=["--include-pads"],
+                                    description="Export pads",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-zones",
+                                    commands=["--include-zones"],
+                                    description="Export zones",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-inner-copper",
+                                    commands=["--include-inner-copper"],
+                                    description="Export elements on inner copper layers",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-silkscreen",
+                                    commands=["--include-silkscreen"],
+                                    description="Export silkscreen graphics as a set of flat faces",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-soldermask",
+                                    commands=["--include-soldermask"],
+                                    description="Export soldermask layers as a set of flat faces",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--fuse-shapes",
+                                    commands=["--fuse-shapes"],
+                                    description="Fuse overlapping geometry together",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--fill-all-vias",
+                                    commands=["--fill-all-vias"],
+                                    description="Don't cut via holes in conductor layers.",
                                     default=False,
                                 ),
                             ],
@@ -1169,12 +2264,24 @@ kicad_cli_l2 = ParserL2.Command(
                                     arg_description="SHAPE_OPTION",
                                     required=False,
                                 ),
+                                ParserL2.Argument(
+                                    name="--common-layers",
+                                    description='Layers to include on each plot, comma separated list of untranslated layer names to include such as F.Cu,B.Cu [nargs=0..1] [default: ""]',
+                                    arg_description="COMMON_LAYER_LIST",
+                                    required=False,
+                                ),
                             ],
                             flags=[
                                 ParserL2.Flag(
                                     name="--help",
                                     commands=["-h", "--help"],
                                     description="Shows help message and exits",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--subtract-soldermask",
+                                    commands=["--subtract-soldermask"],
+                                    description="Subtract soldermask from silkscreen",
                                     default=False,
                                 ),
                                 ParserL2.Flag(
@@ -1196,9 +2303,66 @@ kicad_cli_l2 = ParserL2.Command(
                                     default=False,
                                 ),
                                 ParserL2.Flag(
+                                    name="--sketch-pads-on-fab-layers",
+                                    commands=["--sp", "--sketch-pads-on-fab-layers"],
+                                    description="Draw pad outlines and their numbers on front and back fab layers",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--hide-DNP-footprints-on-fab-layers",
+                                    commands=[
+                                        "--hdnp",
+                                        "--hide-DNP-footprints-on-fab-layers",
+                                    ],
+                                    description="Don't plot text & graphics of DNP footprints on fab layers",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--sketch-DNP-footprints-on-fab-layers",
+                                    commands=[
+                                        "--sdnp",
+                                        "--sketch-DNP-footprints-on-fab-layers",
+                                    ],
+                                    description="Plot graphics of DNP footprints in sketch mode on fab layers",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--crossout-DNP-footprints-on-fab-layers",
+                                    commands=[
+                                        "--cdnp",
+                                        "--crossout-DNP-footprints-on-fab-layers",
+                                    ],
+                                    description="Plot an 'X' over the courtyard of DNP footprints on fab layers, and strikeout their reference designators",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--fit-page-to-board",
+                                    commands=["--fit-page-to-board"],
+                                    description="Fit the page to the board",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
                                     name="--exclude-drawing-sheet",
                                     commands=["--exclude-drawing-sheet"],
                                     description="No drawing sheet",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--mode-single",
+                                    commands=["--mode-single"],
+                                    description="Generates a single file with the output arg path acting as the complete directory and filename path. COMMON_LAYER_LIST does not function in this mode. Instead LAYER_LIST controls all layers plotted.",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--mode-multi",
+                                    commands=["--mode-multi"],
+                                    description="Generates one or more files with behavior similar to the KiCad GUI plotting. The given output path specifies a directory in which files may be output.",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--plot-invisible-text",
+                                    commands=["--plot-invisible-text"],
+                                    description="Deprecated.  Has no effect.",
                                     default=False,
                                 ),
                             ],
@@ -1259,6 +2423,18 @@ kicad_cli_l2 = ParserL2.Command(
                                     default=False,
                                 ),
                                 ParserL2.Flag(
+                                    name="--no-unspecified",
+                                    commands=["--no-unspecified"],
+                                    description="Exclude 3D models for components with 'Unspecified' footprint type",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--no-dnp",
+                                    commands=["--no-dnp"],
+                                    description="Exclude 3D models for components with 'Do not populate' attribute",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
                                     name="--models-relative",
                                     commands=["--models-relative"],
                                     description="Used with --models-dir to output relative paths in the resulting file",
@@ -1267,7 +2443,307 @@ kicad_cli_l2 = ParserL2.Command(
                             ],
                             subcommands=[],
                         ),
+                        ParserL2.Command(
+                            name="xao",
+                            description="Export XAO",
+                            args=[
+                                ParserL2.Argument(
+                                    name="INPUT_FILE",
+                                    description="Input file",
+                                    arg_description="INPUT_FILE",
+                                    required=True,
+                                ),
+                                ParserL2.Argument(
+                                    name="--output",
+                                    description='Output file [nargs=0..1] [default: ""]',
+                                    arg_description="OUTPUT_FILE",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--define-var",
+                                    description="Overrides or adds project variables, can be used multiple times to declare multiple variables.",
+                                    arg_description="KEY=VALUE",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--component-filter",
+                                    description='Only include component 3D models matching this list of reference designators (comma-separated, wildcards supported) [nargs=0..1] [default: ""]',
+                                    arg_description="VAR",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--min-distance",
+                                    description='Minimum distance between points to treat them as separate ones [nargs=0..1] [default: "0.01mm"]',
+                                    arg_description="MIN_DIST",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--net-filter",
+                                    description='Only include copper items belonging to nets matching this wildcard [nargs=0..1] [default: ""]',
+                                    arg_description="VAR",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--user-origin",
+                                    description='User-specified output origin ex. 1x1in, 1x1inch, 25.4x25.4mm (default unit mm) [nargs=0..1] [default: ""]',
+                                    arg_description="VAR",
+                                    required=False,
+                                ),
+                            ],
+                            flags=[
+                                ParserL2.Flag(
+                                    name="--help",
+                                    commands=["-h", "--help"],
+                                    description="Shows help message and exits",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--force",
+                                    commands=["-f", "--force"],
+                                    description="Overwrite output file",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--no-unspecified",
+                                    commands=["--no-unspecified"],
+                                    description="Exclude 3D models for components with 'Unspecified' footprint type",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--no-dnp",
+                                    commands=["--no-dnp"],
+                                    description="Exclude 3D models for components with 'Do not populate' attribute",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--grid-origin",
+                                    commands=["--grid-origin"],
+                                    description="Use Grid Origin for output origin",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--drill-origin",
+                                    commands=["--drill-origin"],
+                                    description="Use Drill Origin for output origin",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--subst-models",
+                                    commands=["--subst-models"],
+                                    description="Substitute STEP or IGS models with the same name in place of VRML models",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--board-only",
+                                    commands=["--board-only"],
+                                    description="Only generate a board with no components",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--cut-vias-in-body",
+                                    commands=["--cut-vias-in-body"],
+                                    description="Cut via holes in board body even if conductor layers are not exported.",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--no-board-body",
+                                    commands=["--no-board-body"],
+                                    description="Exclude board body",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--no-components",
+                                    commands=["--no-components"],
+                                    description="Exclude 3D models for components",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-tracks",
+                                    commands=["--include-tracks"],
+                                    description="Export tracks and vias",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-pads",
+                                    commands=["--include-pads"],
+                                    description="Export pads",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-zones",
+                                    commands=["--include-zones"],
+                                    description="Export zones",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-inner-copper",
+                                    commands=["--include-inner-copper"],
+                                    description="Export elements on inner copper layers",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-silkscreen",
+                                    commands=["--include-silkscreen"],
+                                    description="Export silkscreen graphics as a set of flat faces",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--include-soldermask",
+                                    commands=["--include-soldermask"],
+                                    description="Export soldermask layers as a set of flat faces",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--fuse-shapes",
+                                    commands=["--fuse-shapes"],
+                                    description="Fuse overlapping geometry together",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--fill-all-vias",
+                                    commands=["--fill-all-vias"],
+                                    description="Don't cut via holes in conductor layers.",
+                                    default=False,
+                                ),
+                            ],
+                            subcommands=[],
+                        ),
                     ],
+                ),
+                ParserL2.Command(
+                    name="render",
+                    description="Renders the PCB in 3D view to PNG or JPEG image",
+                    args=[
+                        ParserL2.Argument(
+                            name="INPUT_FILE",
+                            description="Input file",
+                            arg_description="INPUT_FILE",
+                            required=True,
+                        ),
+                        ParserL2.Argument(
+                            name="--output",
+                            description='Output file [nargs=0..1] [default: ""]',
+                            arg_description="OUTPUT_FILE",
+                            required=False,
+                        ),
+                        ParserL2.Argument(
+                            name="--define-var",
+                            description="Overrides or adds project variables, can be used multiple times to declare multiple variables.",
+                            arg_description="KEY=VALUE",
+                            required=False,
+                        ),
+                        ParserL2.Argument(
+                            name="--width",
+                            description="Image width [nargs=0..1] [default: 1600]",
+                            arg_description="WIDTH",
+                            required=False,
+                        ),
+                        ParserL2.Argument(
+                            name="--height",
+                            description="Image height [nargs=0..1] [default: 900]",
+                            arg_description="HEIGHT",
+                            required=False,
+                        ),
+                        ParserL2.Argument(
+                            name="--side",
+                            description='Render from side. Options: top, bottom, left, right, front, back [nargs=0..1] [default: "top"]',
+                            arg_description="SIDE",
+                            required=False,
+                        ),
+                        ParserL2.Argument(
+                            name="--background",
+                            description='Image background. Options: default, transparent, opaque. Default: transparent for PNG, opaque for JPEG [nargs=0..1] [default: ""]',
+                            arg_description="BG",
+                            required=False,
+                        ),
+                        ParserL2.Argument(
+                            name="--quality",
+                            description='Render quality. Options: basic, high, user [nargs=0..1] [default: "basic"]',
+                            arg_description="QUALITY",
+                            required=False,
+                        ),
+                        ParserL2.Argument(
+                            name="--preset",
+                            description='Color preset. Options: follow_pcb_editor, follow_plot_settings, legacy_preset_flag, ... [nargs=0..1] [default: "follow_plot_settings"]',
+                            arg_description="PRESET",
+                            required=False,
+                        ),
+                        ParserL2.Argument(
+                            name="--zoom",
+                            description="Camera zoom [nargs=0..1] [default: 1]",
+                            arg_description="ZOOM",
+                            required=False,
+                        ),
+                        ParserL2.Argument(
+                            name="--pan",
+                            description="Pan camera, format 'X,Y,Z' e.g.: '3,0,0' [nargs=0..1] [default: \"\"]",
+                            arg_description="VECTOR",
+                            required=False,
+                        ),
+                        ParserL2.Argument(
+                            name="--pivot",
+                            description="Set pivot point relative to the board center in centimeters, format 'X,Y,Z' e.g.: '-10,2,0' [nargs=0..1] [default: \"\"]",
+                            arg_description="PIVOT",
+                            required=False,
+                        ),
+                        ParserL2.Argument(
+                            name="--rotate",
+                            description="Rotate board, format 'X,Y,Z' e.g.: '-45,0,45' for isometric view [nargs=0..1] [default: \"\"]",
+                            arg_description="ANGLES",
+                            required=False,
+                        ),
+                        ParserL2.Argument(
+                            name="--light-top",
+                            description="Top light intensity, format 'R,G,B' or a single number, range: 0-1 [nargs=0..1] [default: \"\"]",
+                            arg_description="COLOR",
+                            required=False,
+                        ),
+                        ParserL2.Argument(
+                            name="--light-bottom",
+                            description="Bottom light intensity, format 'R,G,B' or a single number, range: 0-1 [nargs=0..1] [default: \"\"]",
+                            arg_description="COLOR",
+                            required=False,
+                        ),
+                        ParserL2.Argument(
+                            name="--light-side",
+                            description="Side lights intensity, format 'R,G,B' or a single number, range: 0-1 [nargs=0..1] [default: \"\"]",
+                            arg_description="COLOR",
+                            required=False,
+                        ),
+                        ParserL2.Argument(
+                            name="--light-camera",
+                            description="Camera light intensity, format 'R,G,B' or a single number, range: 0-1 [nargs=0..1] [default: \"\"]",
+                            arg_description="COLOR",
+                            required=False,
+                        ),
+                        ParserL2.Argument(
+                            name="--light-side-elevation",
+                            description="Side lights elevation angle in degrees, range: 0-90 [nargs=0..1] [default: 60]",
+                            arg_description="ANGLE",
+                            required=False,
+                        ),
+                    ],
+                    flags=[
+                        ParserL2.Flag(
+                            name="--help",
+                            commands=["-h", "--help"],
+                            description="Shows help message and exits",
+                            default=False,
+                        ),
+                        ParserL2.Flag(
+                            name="--floor",
+                            commands=["--floor"],
+                            description="Enables floor, shadows and post-processing, even if disabled in quality preset",
+                            default=False,
+                        ),
+                        ParserL2.Flag(
+                            name="--perspective",
+                            commands=["--perspective"],
+                            description="Use perspective projection instead of orthogonal",
+                            default=False,
+                        ),
+                    ],
+                    subcommands=[],
                 ),
             ],
         ),
@@ -1475,6 +2951,12 @@ kicad_cli_l2 = ParserL2.Command(
                                     default=False,
                                 ),
                                 ParserL2.Flag(
+                                    name="--include-excluded-from-bom",
+                                    commands=["--include-excluded-from-bom"],
+                                    description="Include symbols marked 'Exclude from BOM'.",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
                                     name="--keep-tabs",
                                     commands=["--keep-tabs"],
                                     description="Keep tab characters from input fields. Stripped by default.",
@@ -1521,6 +3003,12 @@ kicad_cli_l2 = ParserL2.Command(
                                     name="--theme",
                                     description='Color theme to use (will default to schematic settings) [nargs=0..1] [default: ""]',
                                     arg_description="THEME_NAME",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--default-font",
+                                    description='Default font name [nargs=0..1] [default: "KiCad Font"]',
+                                    arg_description="VAR",
                                     required=False,
                                 ),
                                 ParserL2.Argument(
@@ -1581,6 +3069,12 @@ kicad_cli_l2 = ParserL2.Command(
                                     required=False,
                                 ),
                                 ParserL2.Argument(
+                                    name="--default-font",
+                                    description='Default font name [nargs=0..1] [default: "KiCad Font"]',
+                                    arg_description="VAR",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
                                     name="--pages",
                                     description='List of page numbers separated by comma to print, blank or unspecified is equivalent to all pages [nargs=0..1] [default: ""]',
                                     arg_description="PAGE_LIST",
@@ -1633,7 +3127,7 @@ kicad_cli_l2 = ParserL2.Command(
                                 ),
                                 ParserL2.Argument(
                                     name="--format",
-                                    description='Netlist output format, valid options: kicadsexpr, kicadxml, cadstar, orcadpcb2, spice, spicemodel [nargs=0..1] [default: "kicadsexpr"]',
+                                    description='Netlist output format, valid options: kicadsexpr, kicadxml, cadstar, orcadpcb2, spice, spicemodel, pads, allegro [nargs=0..1] [default: "kicadsexpr"]',
                                     arg_description="FORMAT",
                                     required=False,
                                 ),
@@ -1683,6 +3177,12 @@ kicad_cli_l2 = ParserL2.Command(
                                     required=False,
                                 ),
                                 ParserL2.Argument(
+                                    name="--default-font",
+                                    description='Default font name [nargs=0..1] [default: "KiCad Font"]',
+                                    arg_description="VAR",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
                                     name="--pages",
                                     description='List of page numbers separated by comma to print, blank or unspecified is equivalent to all pages [nargs=0..1] [default: ""]',
                                     arg_description="PAGE_LIST",
@@ -1712,6 +3212,18 @@ kicad_cli_l2 = ParserL2.Command(
                                     name="--exclude-pdf-property-popups",
                                     commands=["--exclude-pdf-property-popups"],
                                     description="Do not generate property popups in PDF",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--exclude-pdf-hierarchical-links",
+                                    commands=["--exclude-pdf-hierarchical-links"],
+                                    description="Do not generate clickable links for hierarchical elements in PDF",
+                                    default=False,
+                                ),
+                                ParserL2.Flag(
+                                    name="--exclude-pdf-metadata",
+                                    commands=["--exclude-pdf-metadata"],
+                                    description="Do not generate PDF metadata from AUTHOR and SUBJECT variables",
                                     default=False,
                                 ),
                                 ParserL2.Flag(
@@ -1755,6 +3267,12 @@ kicad_cli_l2 = ParserL2.Command(
                                     name="--theme",
                                     description='Color theme to use (will default to schematic settings) [nargs=0..1] [default: ""]',
                                     arg_description="THEME_NAME",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--default-font",
+                                    description='Default font name [nargs=0..1] [default: "KiCad Font"]',
+                                    arg_description="VAR",
                                     required=False,
                                 ),
                                 ParserL2.Argument(
@@ -1851,6 +3369,12 @@ kicad_cli_l2 = ParserL2.Command(
                                     name="--theme",
                                     description='Color theme to use (will default to schematic settings) [nargs=0..1] [default: ""]',
                                     arg_description="THEME_NAME",
+                                    required=False,
+                                ),
+                                ParserL2.Argument(
+                                    name="--default-font",
+                                    description='Default font name [nargs=0..1] [default: "KiCad Font"]',
+                                    arg_description="VAR",
                                     required=False,
                                 ),
                                 ParserL2.Argument(

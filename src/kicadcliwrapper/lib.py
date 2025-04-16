@@ -137,12 +137,18 @@ def run_command(command: list[str], check=False) -> str:
     logger.debug("Command stdout: %s", result.stdout)
     logger.debug("Command stderr: %s", result.stderr)
 
+    stdout = result.stdout
     if result.returncode != 0:
-        raise subprocess.CalledProcessError(
-            result.returncode, command, result.stdout, result.stderr
-        )
+        # workaround: Some help commands return an error when no arguments are provided
+        pattern = r"input: [0-9]+ argument\(s\) expected. 0 provided.\n"
+        if "--help" in command and re.match(pattern, stdout):
+            stdout = re.sub(pattern, "", stdout)
+        else:
+            raise subprocess.CalledProcessError(
+                result.returncode, command, result.stdout, result.stderr
+            )
 
-    return result.stdout
+    return stdout
 
 
 def run_parser_command(l2_root: ParserL2.Command, cmd, check=False) -> str:

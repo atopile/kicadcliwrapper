@@ -64,7 +64,7 @@ target-version = "py313"
 exclude = ["docs/", "sandbox/"]
 
 [tool.ruff.format]
-exclude = ["_F.py"]
+exclude = ["src/kicadcliwrapper/generated/*.py"]
 
 [tool.ruff.lint]
 # Enable recommended set of rules
@@ -157,6 +157,7 @@ exclude = [
     "dist",
     "node_modules",
     "venv",
+    "src/kicadcliwrapper/generated/*.py",
 ]
 per-file-ignores = {}
 
