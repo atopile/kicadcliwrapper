@@ -95,7 +95,7 @@ def make_command(l2_root: ParserL2.Command, cmd) -> list[str]:
     return out
 
 
-def find_kicad_cli() -> str:
+def find_kicad_cli() -> Path:
     """Figure out what to call for the pcbnew CLI."""
 
     def check(cmd) -> bool:
@@ -109,7 +109,7 @@ def find_kicad_cli() -> str:
             return True
 
     if check("kicad-cli"):
-        return "kicad-cli"
+        return Path("kicad-cli")
 
     if sys.platform.startswith("darwin"):
         base = Path("/Applications/KiCad/")
@@ -118,9 +118,13 @@ def find_kicad_cli() -> str:
     else:
         raise NotImplementedError(f"Unsupported platform: {sys.platform}")
 
-    for cmd in base.glob("**/kicad-cli"):
+    bin_name = "kicad-cli"
+    if sys.platform.startswith("win"):
+        bin_name += ".exe"
+
+    for cmd in base.glob(f"**/{bin_name}"):
         if check(cmd):
-            return str(cmd)
+            return cmd
 
     raise FileNotFoundError("Could not find kicad-cli executable")
 
@@ -128,7 +132,7 @@ def find_kicad_cli() -> str:
 def run_command(command: list[str], check=False) -> str:
     assert command
     cli_path = find_kicad_cli()
-    assert cli_path.endswith(command[0])
+    assert cli_path.name.replace(".exe", "") == command[0]
     logger.debug("Running command: %s", " ".join(command))
 
     result = subprocess.run([cli_path] + command[1:], capture_output=True, text=True)
